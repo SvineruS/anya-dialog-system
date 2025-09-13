@@ -50,10 +50,9 @@ export default function GigNodeView() {
     setRolling(true);
     try {
       const { game: nextGame } = await decide(game!.nodeId, index);
-      if (game!.node.text)
-        { // @ts-ignore
-          setPrevText((prev) => [...prev, ...game!.node.text])
-        }
+      if (game!.node.text) { // @ts-ignore
+        setPrevText((prev) => [...prev, ...game!.node.text])
+      }
       setGame(nextGame);
     } catch (err) {
       setError((err as Error).message);
@@ -67,52 +66,64 @@ export default function GigNodeView() {
   if (!game) return <div>No node available</div>;
 
   return (
-    <div style={{ padding: "1rem", maxWidth: "600px", margin: "0 auto" }}>
-      {/* Prev text */}
-      {prevText?.map((line, i) => (
-        <p key={i}>
-          <strong>{line.from}: </strong>
-          {Array.isArray(line.text) ? line.text.join(" ") : line.text}
-        </p>
-      ))}
+    <div style={{ display: "flex", height: "100vh" }}>
+      <div style={{ flex: 1, padding: "1rem", overflow: "auto" }}>
+        {prevText?.map((line, i) => (
+          <p key={i}>
+            <strong>{line.from}: </strong>
+            {Array.isArray(line.text) ? line.text.join(" ") : line.text}
+          </p>
+        ))}
 
-      <hr/>
-      {/* Dialogue text */}
-      {game.node.text?.map((line, i) => (
-        <p key={i}>
-          <strong>{line.from}: </strong>
-          {Array.isArray(line.text) ? line.text.join(" ") : line.text}
-        </p>
-      ))}
+        <hr/>
+        {game.node.text?.map((line, i) => (
+          <p key={i}>
+            <strong>{line.from}: </strong>
+            {Array.isArray(line.text) ? line.text.join(" ") : line.text}
+          </p>
+        ))}
 
-      {/* Decisions */}
-      {game.node.decision && (
-        <div style={{ marginTop: "1rem" }}>
-          {game.node.decision.map((option, i) => (
-            <div key={i} style={{ border: "1px solid #444", padding: "0.5rem", marginBottom: "0.5rem" }}>
-              <button onClick={() => handleDecision(i)} disabled={rolling}>
-                {option.text}
-              </button>
+        {/* Decisions */}
+        {game.node.decision && (
+          <div style={{ marginTop: "1rem" }}>
+            {game.node.decision.map((option, i) => (
+              <div key={i} style={{ border: "1px solid #444", padding: "0.5rem", marginBottom: "0.5rem" }}>
+                <button onClick={() => handleDecision(i)} disabled={rolling}>
+                  {option.text}
+                </button>
 
-              {option.cost && (
-                <div style={{ fontSize: "0.8rem" }}>
-                  Cost: {option.cost.amount} {option.cost.type}
-                  {option.cost.type === "item" && ` (Item ID: ${option.cost.itemId})`}
-                </div>
-              )}
+                {option.cost && (
+                  <div style={{ fontSize: "0.8rem" }}>
+                    Cost: {option.cost.amount} {option.cost.type}
+                    {option.cost.type === "item" && ` (Item ID: ${option.cost.itemId})`}
+                  </div>
+                )}
 
-              {option.dice && <DiceCard dice={option.dice}/>}
-            </div>
-          ))}
-        </div>
-      )}
+                {option.dice && <DiceCard dice={option.dice}/>}
+              </div>
+            ))}
+          </div>
+        )}
 
-      {!game.node.decision && (
-        <button onClick={() => handleDecision(undefined)} disabled={rolling}>
-          Continue...
-        </button>
-      )}
+        {!game.node.decision && (
+          <button onClick={() => handleDecision(undefined)} disabled={rolling}>
+            Continue...
+          </button>
+        )}
+      </div>
+      <div>
+        <h3>Character</h3>
+        <pre>{JSON.stringify(game.state.character, null, 2)}</pre>
 
+        <h3>Inventory</h3>
+        <pre>{JSON.stringify(game.state.inventory, null, 2)}</pre>
+
+        <h3>Gig State</h3>
+        <pre>{JSON.stringify(game.state.gigState, null, 2)}</pre>
+
+        <h3>Global State</h3>
+        <pre>{JSON.stringify(game.state.globalState, null, 2)}</pre>
+      </div>
     </div>
   );
 }

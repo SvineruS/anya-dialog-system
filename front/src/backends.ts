@@ -1,4 +1,4 @@
-import type { GigNode } from "../../back/src/types/GigDto.ts";
+import type { GigNode, State } from "../../back/src/types/GigDto.ts";
 import { GigGame } from "../../back/src/game/gigGame";
 import { gig } from "../../back/src/gigs/gig1.ts";
 
@@ -39,7 +39,7 @@ const initialState = {
 
 
 const gigGame = new GigGame(gig, initialState);
-export type Game = {node: GigNode, nodeId: string}
+export type Game = {node: GigNode, nodeId: string, state: State}
 
 export async function getGigGame(): Promise<Game> {
   const res = gigGame.getGame()
