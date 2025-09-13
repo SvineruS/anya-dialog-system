@@ -9,7 +9,6 @@ import {
   Payable,
   State
 } from '../types/GigDefault';
-import { safeEval } from "../utils/safeEval";
 import { Evaluator } from './dto';
 import { StateManager } from "./state";
 

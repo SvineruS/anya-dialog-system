@@ -51,7 +51,9 @@ export default function GigNodeView() {
     try {
       const { game: nextGame } = await decide(game!.nodeId, index);
       if (game!.node.text)
-        setPrevText((prev) => [...prev, ...game!.node.text])
+        { // @ts-ignore
+          setPrevText((prev) => [...prev, ...game!.node.text])
+        }
       setGame(nextGame);
     } catch (err) {
       setError((err as Error).message);
