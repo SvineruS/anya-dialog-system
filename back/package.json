@@ -1,0 +1,16 @@
+{
+  "name": "dialog-system",
+  "version": "1.0.0",
+  "description": "",
+  "scripts": {
+    "test": "ts-node src/gigs/gig1.ts",
+    "test2": "ts-node src/test.ts"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.2"
+  }
+}
