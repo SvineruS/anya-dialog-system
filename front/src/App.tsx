@@ -136,7 +136,7 @@ export default function GigNodeView() {
 }
 
 
-function probabilityXdYGreaterThanTarget(x, y, target) {
+function probabilityXdYGreaterThanTarget(x: number, y: number, target: number) {
   // DP approach: count number of ways to get each sum
   const dp: {[k: number]: number}[] = Array.from({ length: x + 1 }, () => ({}));
   dp[0][0] = 1; // base case: 0 dice = 1 way to get sum 0
