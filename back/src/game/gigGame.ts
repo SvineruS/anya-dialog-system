@@ -120,7 +120,7 @@ export class GigGame {
       if (dice.penalty)
         this.doActions(dice.penalty);
 
-      this.setNextNode(dice.success);
+      this.setNextNode(dice.fail);
     }
   }
 
