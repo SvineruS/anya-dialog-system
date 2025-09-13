@@ -43,7 +43,9 @@ export type Game = {node: GigNode, nodeId: string}
 
 export async function getGigGame(): Promise<Game> {
   const res = gigGame.getGame()
-  return { node: res.evaluatedNode, nodeId: res.nodeId };
+  const game = { node: res.evaluatedNode, nodeId: res.nodeId, state: res.state };
+  console.log(game)
+  return game;
 }
 
 export async function decide(nodeId: string, decisionIndex?: number) {

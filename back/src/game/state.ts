@@ -15,10 +15,10 @@ export class StateManager {
   }
 
   evaluate(statement: string): any {
-    const stateDeepCopy = this.getState();
-    const { result, readLog, error } = safeEval(statement, stateDeepCopy);
+    const state = this.getState();
+    const { result, readLog, error } = safeEval(statement, state);
     if (error) {
-      console.warn(`Error evaluating "${statement}": ${error}`, { readLog, stateDeepCopy });
+      console.warn(`Error evaluating "${statement}": ${error}`, { readLog, state });
     }
     return result;
   }

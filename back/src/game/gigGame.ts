@@ -30,7 +30,7 @@ export class GigGame {
   public getGame() {
     const node = this.graph[this.currentNodeId]
     const evaluatedNode = new Evaluator(this.state).evaluateNode(node);
-    const state = this.getStateCopy();
+    const state = this.state.getState();
     return { state, node, evaluatedNode, nodeId: this.currentNodeId };
   }
 
@@ -72,7 +72,7 @@ export class GigGame {
 
   private advanceToNextNode(currentNode: GigNode): void {
     if (currentNode.branch) {
-      const result = this.evaluate(currentNode.branch.switch);
+      const result = this.state.evaluate(currentNode.branch.switch);
       const next = currentNode.branch[result] || currentNode.branch.default;
       return this.setNextNode(next);
     } else if (currentNode.next)
@@ -137,20 +137,6 @@ export class GigGame {
       return
     }
     throw new Error(`Unknown cost type: ${type}`);
-  }
-
-
-  private getStateCopy(): State {
-    return JSON.parse(JSON.stringify(this.state));
-  }
-
-  private evaluate(statement: string): any {
-    const stateDeepCopy = this.getStateCopy();
-    const { result, readLog, error } = safeEval(statement, stateDeepCopy);
-    if (error) {
-      console.warn(`Error evaluating "${statement}": ${error}`, { readLog, stateDeepCopy });
-    }
-    return result;
   }
 
 

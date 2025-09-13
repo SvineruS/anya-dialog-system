@@ -26,6 +26,7 @@ function DiceCard({ dice }: { dice: DiceCheck }) {
 }
 
 export default function GigNodeView() {
+  const [prevText, setPrevText] = useState<any[]>([]);
   const [game, setGame] = useState<Game | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -49,6 +50,8 @@ export default function GigNodeView() {
     setRolling(true);
     try {
       const { game: nextGame } = await decide(game!.nodeId, index);
+      if (game!.node.text)
+        setPrevText((prev) => [...prev, ...game!.node.text])
       setGame(nextGame);
     } catch (err) {
       setError((err as Error).message);
@@ -63,6 +66,15 @@ export default function GigNodeView() {
 
   return (
     <div style={{ padding: "1rem", maxWidth: "600px", margin: "0 auto" }}>
+      {/* Prev text */}
+      {prevText?.map((line, i) => (
+        <p key={i}>
+          <strong>{line.from}: </strong>
+          {Array.isArray(line.text) ? line.text.join(" ") : line.text}
+        </p>
+      ))}
+
+      <hr/>
       {/* Dialogue text */}
       {game.node.text?.map((line, i) => (
         <p key={i}>
@@ -87,7 +99,7 @@ export default function GigNodeView() {
                 </div>
               )}
 
-              {option.dice && <DiceCard dice={option.dice} />}
+              {option.dice && <DiceCard dice={option.dice}/>}
             </div>
           ))}
         </div>

@@ -36,6 +36,9 @@ export const gig: GigGraph = {
   },
 
   corp_refuse: {
+    actions: [
+      {type: "setVar", var: "gigState.refused", set: 1}
+    ],
     text: [
       { from: "you", text: "Not interested." },
       { from: "stranger", text: "Suit yourself." }
@@ -44,6 +47,9 @@ export const gig: GigGraph = {
   },
 
   corp_accept: {
+    actions: [
+      {type: "setVar", var: "gigState.accepted", set: 1}
+    ],
     text: [
       { from: "you", text: "I’m in." },
       { from: "stranger", text: "Good. We’ll be in touch soon." }
@@ -52,6 +58,9 @@ export const gig: GigGraph = {
   },
 
   corp_wait: {
+    actions: [
+      {type: "setVar", var: "gigState.waited", set: 1}
+    ],
     text: [
       { from: "you", text: "I need some time to think." },
       { from: "stranger", text: "Fair enough. The offer stands." }
@@ -117,6 +126,7 @@ export const gig: GigGraph = {
           target: 12,
           bonuses: [
             { type: "characterAttribute", attribute: "charisma" },
+            { type: "condition", condition: "gigState.waited == 1", amount: +3, text: "You didn't answer to corp yet" },
             { type: "condition", condition: "gigState.barDrinks == 1", amount: 1, text: "You ordered something" },
             { type: "condition", condition: "gigState.barDrinks > 2", amount: 2, text: "Loosened tongue" },
             { type: "condition", condition: "gigState.failWithBartender == 1", amount: -3, text: "Previous attempt was miserable" }
@@ -177,7 +187,17 @@ export const gig: GigGraph = {
   bar_leave: {
     text: [
       { from: "narrator", text: "You leave the bar, the neon fading into the night." },
-      { from: "you", text: "I need to answer that corp"}
+    ],
+    branch: {
+      switch: "gigState.waited",
+      true: "corp_decision_final",
+      default: "end"
+    }
+  },
+
+  corp_decision_final: {
+    text: [
+      { from: "you", text: "I need to answer that corp" }
     ],
     decision: [
       { text: "Accept the corp job", next: "corp_accept_final" },
