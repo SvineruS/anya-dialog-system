@@ -21,11 +21,11 @@ import { gig } from "../../back/src/gigs/gig1.ts";
 
 const initialState = {
   character: {
-    strength: 1,
-    dexterity: 1,
-    intelligence: 2,
-    charisma: 1,
-    reputation: 0,
+    strength: 10,
+    dexterity: 7,
+    intelligence: 6,
+    charisma: 7,
+    reputation: 8,
 
     credits: 50,
     // health: 10,

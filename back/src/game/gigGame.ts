@@ -102,15 +102,17 @@ export class GigGame {
 
 
   private rollDice(dice: DiceCheck) {
-    let totalRoll = 0;
+    let rollValue = 0;
     const [numDice, diceSides] = dice.dice;
     for (let i = 0; i < numDice; i++)
-      totalRoll += Math.floor(Math.random() * diceSides) + 1;
-
-    this.state.setVar("gigState", "rollValue",  totalRoll);
+      rollValue += Math.floor(Math.random() * diceSides) + 1;
 
     const evaluatedBonus = new Evaluator(this.state).evaluateDiceCheck(dice).bonus;
-    const isSuccess = (totalRoll + evaluatedBonus) >= dice.target;
+    const isSuccess = (rollValue + evaluatedBonus) >= dice.target;
+
+    this.state.setVar("gigState", "rollValue",  rollValue);
+    this.state.setVar("gigState", "isRollSuccess", isSuccess);
+
 
     if (isSuccess) {
       this.setNextNode(dice.success);

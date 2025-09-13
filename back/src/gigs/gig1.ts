@@ -123,12 +123,12 @@ export const gig: GigGraph = {
         text: "Sneak up (convince bartender to spill info)",
         dice: {
           dice: [2, 6],
-          target: 12,
+          target: 18,
           bonuses: [
             { type: "characterAttribute", attribute: "charisma" },
-            { type: "condition", condition: "gigState.waited == 1", amount: +3, text: "You didn't answer to corp yet" },
-            { type: "condition", condition: "gigState.barDrinks == 1", amount: 1, text: "You ordered something" },
-            { type: "condition", condition: "gigState.barDrinks > 2", amount: 2, text: "Loosened tongue" },
+            { type: "condition", condition: "gigState.waited == 1", amount: +2, text: "You didn't answer to corp yet" },
+            { type: "condition", condition: "gigState.barDrinks >= 1", amount: 1, text: "You ordered something" },
+            { type: "condition", condition: "gigState.barDrinks >= 2", amount: 2, text: "Loosened tongue" },
             { type: "condition", condition: "gigState.failWithBartender == 1", amount: -3, text: "Previous attempt was miserable" }
           ],
           success: "bartender_success",

@@ -3,6 +3,9 @@ import { useEffect, useState } from "react";
 import { decide, type Game, getGigGame } from "./backends.ts";
 
 function DiceCard({ dice }: { dice: DiceCheck }) {
+  const chance = probabilityXdYGreaterThanTarget(dice.dice[0], dice.dice[1], dice.target - dice.bonus)
+  const chanceStr = (chance * 100).toFixed(2);
+
   return (
     <div className="mt-2 p-3 rounded-xl border text-sm">
       <div className="font-bold mb-1">🎲 Dice Check</div>
@@ -10,13 +13,17 @@ function DiceCard({ dice }: { dice: DiceCheck }) {
         Roll: {dice.dice[0]}d{dice.dice[1]} vs Target {dice.target}
       </div>
       <div>Total Bonus: +{dice.bonus}</div>
+      <div>Success chance: {chanceStr} %</div>
+
       {dice.bonuses && (
         <ul>
           {dice.bonuses.map((b, i) => (
             <li key={i}>
-              {"attribute" in b
-                ? `${b.attribute} +${b.amount}`
-                : `${b.text} (+${b.amount})`}
+              {"attribute" in b ? `Attribute bonus for ${b.attribute.toUpperCase()}` : `${b.text}`}
+              {b.amount > 0 ?
+                (<span style={{color: "green"}}> +{b.amount} </span>) :
+                (<span style={{color: "red"}}>  {b.amount} </span>)
+              }
             </li>
           ))}
         </ul>
@@ -126,4 +133,33 @@ export default function GigNodeView() {
       </div>
     </div>
   );
+}
+
+
+function probabilityXdYGreaterThanTarget(x, y, target) {
+  // DP approach: count number of ways to get each sum
+  const dp: {[k: number]: number}[] = Array.from({ length: x + 1 }, () => ({}));
+  dp[0][0] = 1; // base case: 0 dice = 1 way to get sum 0
+
+  for (let dice = 1; dice <= x; dice++) {
+    for (const [sumStr, count] of Object.entries(dp[dice - 1])) {
+      const sum = parseInt(sumStr, 10);
+      for (let face = 1; face <= y; face++) {
+        const newSum = sum + face;
+        dp[dice][newSum] = (dp[dice][newSum] || 0) + count;
+      }
+    }
+  }
+
+  // total outcomes
+  const total = Math.pow(y, x);
+
+  // favorable outcomes: sums > target
+  let favorable = 0;
+  for (const [sumStr, count] of Object.entries(dp[x])) {
+    const sum = parseInt(sumStr, 10);
+    if (sum > target) favorable += count;
+  }
+
+  return favorable / total;
 }
