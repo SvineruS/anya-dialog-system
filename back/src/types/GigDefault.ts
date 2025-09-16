@@ -1,5 +1,5 @@
 type Evaluable = string;  // can be evaluated in JS context with game state, should return something
-type Attribute = "strength" | "dexterity" | "intelligence" | "charisma" | "reputation";
+type Attribute = "strength" | "charisma" | "intelligence" | "marksmanship" | "stealth";
 
 interface State {
   character: { [key in Attribute]: number } & {credits: number};  // character attributes, money, etc
@@ -38,6 +38,7 @@ interface Branch {
 // A Decision Option in a GigNode, can involve a dice check
 interface DecisionOption {
   text: string;
+  condition?: Evaluable; // if present, only show this option if condition is true
   cost?: Payable;
   // Only one of the following should be present:
   dice?: DiceCheck; // if present, makes a dice roll check. On success goes to success node, on fail to fail node

@@ -9,7 +9,7 @@ import {
   Payable,
   State
 } from '../types/GigDefault';
-import { Evaluator } from './dto';
+import { Evaluator } from './evaluator';
 import { StateManager } from "./state";
 
 export class GigGame {
@@ -22,7 +22,7 @@ export class GigGame {
     this.graph = graph;
     this.state = new StateManager(initialState);
     this.currentNodeId = Object.keys(graph)[0]; // Start at the first node
-    this.setNextNode(this.currentNodeId);
+    this.advanceToNextNode(this.currentNodeId);
   }
 
 
@@ -37,7 +37,9 @@ export class GigGame {
     if (nodeId !== this.currentNodeId)
       throw new Error(`nodeId mismatch. Current node is "${this.currentNodeId}"`);
 
-    const currentNode = this.graph[this.currentNodeId];
+    let currentNode = this.graph[this.currentNodeId];
+
+    let nextNodeId: NodeId;
 
     if (currentNode.decision) {
       if (decisionIndex === undefined || decisionIndex < 0 || decisionIndex >= currentNode.decision.length)
@@ -46,62 +48,80 @@ export class GigGame {
       if (!decision)
         throw new Error(`Invalid decision index: ${decisionIndex}`);
 
-      return this.makeDecisionAndAdvance(decision);
+      nextNodeId = this.makeDecision(decision, decisionIndex);
+    } else {
+      nextNodeId = this.getNextNode(currentNode);
     }
 
-    this.advanceToNextNode(currentNode);
+    this.advanceToNextNode(nextNodeId);
+
+
 
   }
 
-
-
-  private makeDecisionAndAdvance(decision: DecisionOption) {
-    if (decision.cost) {
-      // Handle costs if applicable
-      this.payCost(decision.cost);
-    }
-
-    if (decision.dice)
-      return this.rollDice(decision.dice);
-    else if (decision.next)
-      return this.setNextNode(decision.next);
-    else
-      throw new Error('Decision must have either a dice roll or a next node.');
-  }
-
-  private advanceToNextNode(currentNode: GigNode): void {
-    if (currentNode.branch) {
-      const result = this.state.evaluate(currentNode.branch.switch);
-      const next = currentNode.branch[result] || currentNode.branch.default;
-      return this.setNextNode(next);
-    } else if (currentNode.next)
-      return this.setNextNode(currentNode.next);
-    else
-      throw new Error('Current node has no decisions, branches, or next node to proceed to.');
-  }
-
-  private setNextNode(nodeId: NodeId): void {
-    const currentNode = this.graph[nodeId];
-    if (!currentNode)
+  private advanceToNextNode(nodeId: NodeId): void {
+    const newCurrentNode = this.graph[nodeId];
+    if (!newCurrentNode)
       throw new Error(`NodeId "${nodeId}" does not exist in the graph.`);
 
     this.currentNodeId = nodeId;
 
 
-    if (currentNode.actions) {
+    if (newCurrentNode.actions) {
       // Handle actions if applicable
-      this.doActions(currentNode.actions)
+      this.doActions(newCurrentNode.actions)
     }
 
 
-    if (!currentNode.text && !currentNode.decision) {
-      // Auto-advance to a next node if currant node has no text or decisions
-      this.advanceToNextNode(currentNode);
+    // Auto-advance to a next node if currant node has no text or decisions
+    if (!newCurrentNode.text && !newCurrentNode.decision) {
+      const nextNodeId = this.getNextNode(newCurrentNode);
+      this.advanceToNextNode(nextNodeId);
     }
   }
 
 
-  private rollDice(dice: DiceCheck) {
+
+
+  private makeDecision(decision: DecisionOption, decisionIndex: number): NodeId {
+    if (decision.condition) {
+      const conditionMet = new Evaluator(this.state).evaluate(decision.condition);
+      if (!conditionMet)
+        throw new Error(`Decision condition not met for decision index ${decisionIndex}.`);
+    }
+
+    if (decision.cost) // Handle costs if applicable
+      this.payCost(decision.cost);
+
+
+    if (decision.dice)
+      return this.rollDice(decision.dice, decisionIndex);
+    else if (decision.next)
+      return decision.next;
+    else
+      throw new Error('Decision must have either a dice roll or a next node.');
+  }
+
+
+
+  private getNextNode(currentNode: GigNode): NodeId {
+    if (currentNode.branch)
+      return new Evaluator(this.state).evaluateBranchNode(currentNode.branch);
+    else if (currentNode.next)
+      return currentNode.next;
+    else
+      throw new Error('Current node has no decisions, branches, or next node to proceed to.');
+  }
+
+  private rollDice(dice: DiceCheck, decisionIndex: number): NodeId {
+    const rollId = `roll_${this.currentNodeId}_${decisionIndex}`;
+    const alreadyWin = this.state.getVar("gigState", rollId);
+    if (alreadyWin) {
+      // If already won, skip the roll and go to success
+      return dice.success;
+    }
+
+
     let rollValue = 0;
     const [numDice, diceSides] = dice.dice;
     for (let i = 0; i < numDice; i++)
@@ -115,12 +135,13 @@ export class GigGame {
 
 
     if (isSuccess) {
-      this.setNextNode(dice.success);
+      this.state.setVar("gigState", rollId, 1);
+      return dice.success;
     } else {
       if (dice.penalty)
         this.doActions(dice.penalty);
 
-      this.setNextNode(dice.fail);
+      return dice.fail;
     }
   }
 

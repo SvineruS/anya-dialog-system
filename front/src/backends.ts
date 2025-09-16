@@ -1,4 +1,4 @@
-import type { GigNode, State } from "../../back/src/types/GigDto.ts";
+import type { GigNode, State } from "../../back/src/types/GigFront.ts";
 import { GigGame } from "../../back/src/game/gigGame";
 import { gig } from "../../back/src/gigs/gig1.ts";
 

@@ -1,4 +1,4 @@
-import type { DiceCheck } from "../../back/src/types/GigDto.ts";
+import type { DiceCheck } from "../../back/src/types/GigFront.ts";
 import { useEffect, useState } from "react";
 import { decide, type Game, getGigGame } from "./backends.ts";
 
