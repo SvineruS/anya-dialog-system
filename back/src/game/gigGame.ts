@@ -1,193 +1,376 @@
 import {
-  Action,
-  Action_ModifyState,
   DecisionOption,
+  DiceBonus,
   DiceCheck,
   GigGraph,
   GigNode,
+  InitialState,
   NodeId,
-  Payable,
   State
-} from '../types/GigDefault';
-import { Evaluator } from './evaluator';
-import { StateManager } from "./state";
+} from "../types/GigDefault";
+import {StateManager} from "./gigStateManager";
+import {
+  GigNode as EvaluatedGigNode,
+  DecisionOption as EvaluatedDecisionOption,
+  DiceBonus as EvaluatedDiceBonus,
+  DiceCheck as EvaluatedDiceCheck
+} from "../types/GigFront";
+import {rollNDices} from "./utils";
+import {GigActionsHelper, GigStateHelper} from "./gigGameHelper";
+import {getGigById} from "../gigs";
+
 
 export class GigGame {
-  private graph: GigGraph;
-  private state: StateManager;
-  private currentNodeId: NodeId;
+  private readonly state: StateManager;
+
+  readonly stateHelper: GigStateHelper;
+  readonly actionsHelper: GigActionsHelper;
+
+  readonly gigId: string;
+  readonly gig: GigGraph;
+
+  constructor(state: State) {
+    this.state = new StateManager(state);
+    this.stateHelper = new GigStateHelper(this.state);
+    this.actionsHelper = new GigActionsHelper(this.state);
 
 
-  constructor(graph: GigGraph, initialState: State) {
-    this.graph = graph;
-    this.state = new StateManager(initialState);
-    this.currentNodeId = Object.keys(graph)[0]; // Start at the first node
-    this.advanceToNextNode(this.currentNodeId);
+    this.gigId = state.game.gigId;
+    this.gig = getGigById(this.gigId);
   }
 
+  static createNewGame(initialState: InitialState, gigId: string) {
+    const gig = getGigById(gigId);
+    const currentNodeId = Object.keys(gig)[0];
 
-  public getGame() {
-    const node = this.graph[this.currentNodeId]
-    const evaluatedNode = new Evaluator(this.state).evaluateNode(node);
-    const state = this.state.getState();
-    return { state, node, evaluatedNode, nodeId: this.currentNodeId };
-  }
-
-  public decide(nodeId: NodeId, decisionIndex?: number): void {
-    if (nodeId !== this.currentNodeId)
-      throw new Error(`nodeId mismatch. Current node is "${this.currentNodeId}"`);
-
-    let currentNode = this.graph[this.currentNodeId];
-
-    let nextNodeId: NodeId;
-
-    if (currentNode.decision) {
-      if (decisionIndex === undefined || decisionIndex < 0 || decisionIndex >= currentNode.decision.length)
-        throw new Error(`Decision index must be provided and valid for nodes with decisions.`);
-      const decision = currentNode.decision[decisionIndex];
-      if (!decision)
-        throw new Error(`Invalid decision index: ${decisionIndex}`);
-
-      nextNodeId = this.makeDecision(decision, decisionIndex);
-    } else {
-      nextNodeId = this.getNextNode(currentNode);
+    const state = {
+      character: initialState.character,
+      inventory: initialState.inventory ?? {},
+      globalState: initialState.globalState ?? {},
+      game: { gigId: gigId, currentNodeId },
+      gigState: {},
     }
 
-    this.advanceToNextNode(nextNodeId);
+    const game = new GigGame(state);
+    game.activateNode(currentNodeId);
+    return game;
+  }
 
+  getGame(): {node: EvaluatedGigNode, state: State} {
+    const currentNodeId = this.stateHelper.currentNodeId().get();
+    const currentNode = new GigCurrentNode(this, currentNodeId);
 
+    return {
+      state: this.state.getState(),
+      node: currentNode.show(),
+    };
 
   }
 
-  private advanceToNextNode(nodeId: NodeId): void {
-    const newCurrentNode = this.graph[nodeId];
-    if (!newCurrentNode)
-      throw new Error(`NodeId "${nodeId}" does not exist in the graph.`);
+  makeDecision(nodeId: NodeId, decisionIndex?: number, retry?: boolean) {
+    const currentNodeId = this.stateHelper.currentNodeId().get();
+    const currentNode = new GigCurrentNode(this, currentNodeId);
+    const result = currentNode.makeDecision(nodeId, decisionIndex, retry);
 
-    this.currentNodeId = nodeId;
+    if (result?.nextNodeId)
+      this.activateNode(result.nextNodeId);
 
-
-    if (newCurrentNode.actions) {
-      // Handle actions if applicable
-      this.doActions(newCurrentNode.actions)
-    }
-
-
-    // Auto-advance to a next node if currant node has no text or decisions
-    if (!newCurrentNode.text && !newCurrentNode.decision) {
-      const nextNodeId = this.getNextNode(newCurrentNode);
-      this.advanceToNextNode(nextNodeId);
-    }
+    return result;
   }
 
 
+  private activateNode(nodeId: NodeId) {
+    const node = new GigCurrentNode(this, nodeId);
+
+    this.stateHelper.currentNodeId().set(nodeId);
+    node.doActions();
+
+    if (node.canBeSkipped())
+      this.activateNode(node.getNextNode());
+
+  }
+
+}
+
+class GigCurrentNode {
+  readonly game: GigGame;
+  readonly nodeId: NodeId;
+
+  readonly node: GigNode;
+
+  readonly pendingRollRetry: number | undefined;
+
+  constructor(gigGame: GigGame, nodeId: NodeId) {
+    this.game = gigGame;
+    this.nodeId = nodeId;
+
+    this.node = this.game.gig[nodeId];
+    if (!this.node)
+      throw new Error(`Invalid nodeId: ${nodeId}`);
+
+    this.pendingRollRetry = this.game.stateHelper.pendingRetry().get();
+  }
+
+  makeDecision(nodeId: NodeId, decisionIndex?: number, retry?: boolean) {
+    if (nodeId !== this.nodeId)
+      throw new Error(`nodeId mismatch. Current node is "${this.nodeId}"`);
 
 
-  private makeDecision(decision: DecisionOption, decisionIndex: number): NodeId {
-    if (decision.condition) {
-      const conditionMet = new Evaluator(this.state).evaluate(decision.condition);
-      if (!conditionMet)
-        throw new Error(`Decision condition not met for decision index ${decisionIndex}.`);
+    // If player failed a dice roll and a retry is pending, handle that first
+    if (this.pendingRollRetry !== undefined) {
+      if (decisionIndex !== this.pendingRollRetry)
+        throw new Error(`A retry is pending for decision index ${this.pendingRollRetry}, must provide that index.`);
+      if (retry === undefined)
+        throw new Error(`A retry is pending, must provide acceptRetry parameter.`);
+
+      return this.decisionOption(decisionIndex).diceCheck().retry(retry);
     }
 
-    if (decision.cost) // Handle costs if applicable
-      this.payCost(decision.cost);
+    if (this.node.decision) {
+      if (decisionIndex === undefined)
+        throw new Error(`Decision index must be provided for nodes with decisions.`);
 
+      return this.decisionOption(decisionIndex).makeDecision();
 
-    if (decision.dice)
-      return this.rollDice(decision.dice, decisionIndex);
-    else if (decision.next)
-      return decision.next;
-    else
-      throw new Error('Decision must have either a dice roll or a next node.');
+    }
+
+    if (decisionIndex !== undefined)
+      throw new Error(`Current node has no decisions, cannot provide a decision index.`);
+
+    const nextNodeId = this.getNextNode();
+    return { nextNodeId };
   }
 
 
+  show(): EvaluatedGigNode {
+    return {
+      nodeId: this.nodeId,
+      text: this.node.text,
+      decision: this.node.decision
+        ?.map((_, idx) => this.decisionOption(idx).show())
+        .filter(i => i !== undefined),
+    };
+  }
 
-  private getNextNode(currentNode: GigNode): NodeId {
-    if (currentNode.branch)
-      return new Evaluator(this.state).evaluateBranchNode(currentNode.branch);
-    else if (currentNode.next)
-      return currentNode.next;
+
+  doActions() {
+    if (this.node.actions)
+      this.game.actionsHelper.doActions(this.node.actions);
+  }
+
+  canBeSkipped() {
+    return !this.node.text && !this.node.decision;
+  }
+
+
+  getNextNode(): NodeId {
+    if (this.node.branch) {
+      const branch = this.node.branch;
+      const result = this.game.stateHelper.evaluate(branch.switch);
+      return branch[result] ?? branch.default;
+    } else if (this.node.next)
+      return this.node.next;
     else
       throw new Error('Current node has no decisions, branches, or next node to proceed to.');
   }
 
-  private rollDice(dice: DiceCheck, decisionIndex: number): NodeId {
-    const rollId = `roll_${this.currentNodeId}_${decisionIndex}`;
-    const alreadyWin = this.state.getVar("gigState", rollId);
-    if (alreadyWin) {
-      // If already won, skip the roll and go to success
-      return dice.success;
-    }
+  decisionOption = (decisionId: number) => new GigDecisionOption(this, decisionId);
+}
 
+class GigDecisionOption {
+  readonly node: GigCurrentNode;
+  readonly decisionId: number;
 
-    let rollValue = 0;
-    const [numDice, diceSides] = dice.dice;
-    for (let i = 0; i < numDice; i++)
-      rollValue += Math.floor(Math.random() * diceSides) + 1;
+  readonly decisionOption: DecisionOption;
 
-    const evaluatedBonus = new Evaluator(this.state).evaluateDiceCheck(dice).bonus;
-    const isSuccess = (rollValue + evaluatedBonus) >= dice.target;
+  constructor(node: GigCurrentNode, decisionId: number) {
+    this.node = node;
+    this.decisionId = decisionId;
 
-    this.state.setVar("gigState", "rollValue",  rollValue);
-    this.state.setVar("gigState", "isRollSuccess", isSuccess);
+    const decisionOption = node.node.decision?.[this.decisionId];
+    if (!decisionOption)
+      throw new Error(`Invalid decision index: ${decisionId}`);
+    this.decisionOption = decisionOption;
+  }
 
+  makeDecision() {
+    if (!this.game().stateHelper.checkCondition(this.decisionOption.condition))
+      throw new Error(`Decision condition not met for decision index ${this.decisionId}.`);
 
-    if (isSuccess) {
-      this.state.setVar("gigState", rollId, 1);
-      return dice.success;
+    // todo don't pay cost if dice.alreadyWon ?
+    if (this.decisionOption.cost) // Handle costs if applicable
+      this.game().actionsHelper.payCost(this.decisionOption.cost);
+
+    if (this.decisionOption.dice) {
+      return this.diceCheck().roll();
+    } else if (this.decisionOption.next) {
+      return { nextNodeId: this.decisionOption.next };
     } else {
-      if (dice.penalty)
-        this.doActions(dice.penalty);
-
-      return dice.fail;
+      throw new Error('Decision has no dice check or next node to proceed to.');
     }
   }
 
-  private payCost({ type, itemId, amount }: Payable) {
-    if (type === 'item') {
-      if (this.state.getVar("inventory", itemId!) < amount)
-        throw new Error(`Insufficient items to make this decision.`);
-      this.state.addVar("inventory", itemId!, -amount);
-      return
-    }
-    if (type === 'credits') {
-      if (this.state.getVar("character", "credits") < amount)
-        throw new Error(`Insufficient credits to make this decision.`);
-      this.state.addVar("character", "credits", -amount);
-      return
-    }
-    throw new Error(`Unknown cost type: ${type}`);
+  show(): EvaluatedDecisionOption | undefined {
+    if (!this.game().stateHelper.checkCondition(this.decisionOption.condition))
+      return undefined;
+
+    return {
+      decisionId: this.decisionId,
+      text: this.decisionOption.text,
+      cost: this.decisionOption.cost,
+      dice: this.decisionOption.dice ? new GigDiceCheck(this).show() : undefined,
+    };
+  }
+
+  game = () => this.node.game;
+  diceCheck = () => new GigDiceCheck(this);
+}
+
+
+// todo get default values from gig object by gig tier
+const MAX_RETRIES = 2;
+const RETRY_COST = 10;
+
+export class GigDiceCheck {
+  readonly decision: GigDecisionOption;
+
+  readonly diceCheck: DiceCheck;
+
+  readonly diceId: string;
+  readonly alreadyWon: boolean;
+  readonly retries: number;
+  readonly isThisDicePendingRetry: boolean;
+
+
+  constructor(decision: GigDecisionOption) {
+    this.decision = decision;
+    if (!this.decision.decisionOption.dice)
+      throw new Error('Dice roll can only be made for decisions with a dice check.');
+    this.diceCheck = this.decision.decisionOption.dice;
+
+    this.diceId = `dice_${this.decision.node.nodeId}_${this.decision.decisionId}`;
+    this.isThisDicePendingRetry = this.decision.node.pendingRollRetry === this.decision.decisionId;
+
+    this.alreadyWon = this.stateHelper().diceAlreadyWin(this.diceId).get();
+    this.retries = this.stateHelper().diceRetriesDone(this.diceId).get();
   }
 
 
-  private doActions(actions: Action[]) {
-    actions.forEach((action) => {
-      if (action.type === 'setVar') {
-        this.doAction_setStateVar(action);
-      } else {
-        throw new Error(`Unknown action type: ${action.type}`);
+  // when roll is failed, call this to decide whether to reroll or accept fail
+  retry(retry: boolean) {
+    if (!this.isThisDicePendingRetry)
+      throw new Error(`No retry is pending for this dice roll.`);
+
+    this.stateHelper().pendingRetry().set(undefined);
+
+    if (!retry) {
+      // accept fail
+      return { nextNodeId: this.diceCheck.fail };
+
+    } else {
+      // try reroll
+      if (!this.canRetry())
+        throw new Error(`No retries left for this dice roll.`);
+
+      this.stateHelper().diceRetriesDone(this.diceId).add(1);
+      // todo - check retries left
+      // todo pay some cost
+
+      return this.roll();
+    }
+  }
+
+  roll() {
+    if (this.alreadyWon) { // If already won, skip the roll and go to success
+      return { nextNodeId: this.diceCheck.success };
+    }
+
+    const [numDice, diceSides] = this.diceCheck.dice;
+    const { rolls, total: rollValue } = rollNDices(numDice, diceSides);
+    const { totalBonus } = this.getBonuses();
+
+    const isSuccess = (rollValue + totalBonus) >= this.diceCheck.target;
+    const rollResult = { rolls, isSuccess };
+
+    this.stateHelper().diceLastResult(this.diceId).set(rollResult);
+
+
+    if (rollResult.isSuccess) {
+      // SUCCESS
+
+      this.stateHelper().diceAlreadyWin(this.diceId).set(true);
+      return { nextNodeId: this.diceCheck.success, rollResult };
+
+    } else {
+      // FAIL
+
+      // todo: are penalties even needed?
+      // if (this.diceCheck.penalty)
+      //   this.game().actionsHelper.doActions(this.diceCheck.penalty);
+
+      const canRetry = this.canRetry();
+      if (canRetry) {
+        // If retries are available, set pending retry and wait for player decision
+        this.stateHelper().pendingRetry().set(this.decision.decisionId);
+        return { rollResult, canRetry: true };
       }
-    });
+
+      return { nextNodeId: this.diceCheck.fail, rollResult, canRetry: false };
+    }
+
+
   }
 
-  private doAction_setStateVar(action: Action_ModifyState) {
-    const [stateType, key] = action.var.split('.', 2) as [keyof State, string];
-    if (stateType !== 'globalState' && stateType !== 'gigState')
-      throw new Error(`State ${stateType} not found/allowed`);
 
-    if (action.set !== undefined) {
-      this.state.setVar(stateType, key, action.set);
-    } else if (action.add !== undefined) {
-      this.state.addVar(stateType, key, action.add)
-    } else {
-      throw new Error(`Action must have either set or add defined.`);
+  show(): EvaluatedDiceCheck {
+    const { bonuses, totalBonus } = this.getBonuses();
+    const lastResult = this.stateHelper().diceLastResult(this.diceId).get();
+    return {
+      dice: this.diceCheck.dice,
+      target: this.diceCheck.target,
+      isAlreadyWon: this.alreadyWon,
+      bonuses,
+      bonus: totalBonus,
+      retries: {
+        maxRetries: this.diceCheck.retries ?? MAX_RETRIES,
+        retriesDone: this.retries,
+        retryCost: RETRY_COST,
+        pendingRetry: this.isThisDicePendingRetry,
+      },
+      lastResult,
+    } as EvaluatedDiceCheck;
+  }
+
+
+  private canRetry() {
+    const maxRetries = this.diceCheck.retries ?? MAX_RETRIES;
+    return this.retries < maxRetries;
+  }
+
+
+  private getBonuses() {
+    const bonuses: EvaluatedDiceBonus[] = this.diceCheck.bonuses
+      ?.map((b) => this.evaluateOneDiceBonus(b))
+      .filter(i => i !== undefined) ?? [];
+
+    const totalBonus = bonuses.reduce((sum, b) => sum + b!.amount, 0);
+    return { bonuses, totalBonus };
+  }
+
+
+  private evaluateOneDiceBonus(bonus: DiceBonus): EvaluatedDiceBonus | undefined {
+    if (bonus.type === 'characterAttribute') {
+      const amount = this.stateHelper().getAttribute(bonus.attribute) || 0;
+      return { ...bonus, amount };
+    }
+    if (bonus.type === 'condition') {
+      if (this.stateHelper().evaluate(bonus.condition))
+        return { amount: bonus.amount, text: bonus.text };
     }
   }
 
 
-
-
+  game = () => this.decision.node.game;
+  stateHelper = () => this.game().stateHelper;
 
 }

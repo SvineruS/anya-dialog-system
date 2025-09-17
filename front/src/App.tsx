@@ -28,6 +28,8 @@ function DiceCard({ dice }: { dice: DiceCheck }) {
           ))}
         </ul>
       )}
+
+      <pre>{JSON.stringify(dice, undefined, 2)}</pre>
     </div>
   );
 }
@@ -35,9 +37,6 @@ function DiceCard({ dice }: { dice: DiceCheck }) {
 export default function GigNodeView() {
   const [prevText, setPrevText] = useState<any[]>([]);
   const [game, setGame] = useState<Game | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [rolling, setRolling] = useState(false);
 
   // Fetch GigNode on mount
   useEffect(() => {
@@ -46,30 +45,22 @@ export default function GigNodeView() {
         const game = await getGigGame();
         setGame(game);
       } catch (err) {
-        setError((err as Error).message);
-      } finally {
-        setLoading(false);
+        console.error((err as Error).message);
       }
     })();
   }, []);
 
   const handleDecision = async (index?: number) => {
-    setRolling(true);
-    try {
-      const { game: nextGame } = await decide(game!.nodeId, index);
+    console.log("Making decision", index);
+
+      const { game: nextGame } = await decide(game.node.nodeId, index);
       if (game!.node.text) { // @ts-ignore
         setPrevText((prev) => [...prev, ...game!.node.text])
       }
       setGame(nextGame);
-    } catch (err) {
-      setError((err as Error).message);
-    } finally {
-      setRolling(false);
-    }
+
   };
 
-  if (loading) return <div>Loading...</div>;
-  if (error) return <div>Error: {error}</div>;
   if (!game) return <div>No node available</div>;
 
   return (
@@ -95,7 +86,7 @@ export default function GigNodeView() {
           <div style={{ marginTop: "1rem" }}>
             {game.node.decision.map((option, i) => (
               <div key={i} style={{ border: "1px solid #444", padding: "0.5rem", marginBottom: "0.5rem" }}>
-                <button onClick={() => handleDecision(i)} disabled={rolling}>
+                <button onClick={() => handleDecision(option.decisionId)}>
                   {option.text}
                 </button>
 
@@ -113,7 +104,7 @@ export default function GigNodeView() {
         )}
 
         {!game.node.decision && (
-          <button onClick={() => handleDecision(undefined)} disabled={rolling}>
+          <button onClick={() => handleDecision(undefined)}>
             Continue...
           </button>
         )}
@@ -125,11 +116,14 @@ export default function GigNodeView() {
         <h3>Inventory</h3>
         <pre>{JSON.stringify(game.state.inventory, null, 2)}</pre>
 
+        <h3>Global State</h3>
+        <pre>{JSON.stringify(game.state.globalState, null, 2)}</pre>
+
         <h3>Gig State</h3>
         <pre>{JSON.stringify(game.state.gigState, null, 2)}</pre>
 
-        <h3>Global State</h3>
-        <pre>{JSON.stringify(game.state.globalState, null, 2)}</pre>
+        <h3>Game</h3>
+        <pre>{JSON.stringify(game.state.game, null, 2)}</pre>
       </div>
     </div>
   );

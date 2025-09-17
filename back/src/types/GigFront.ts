@@ -1,3 +1,5 @@
+import {NodeId} from "./GigDefault";
+
 type Attribute = "strength" | "charisma" | "intelligence" | "marksmanship" | "stealth";
 
 interface State {
@@ -8,12 +10,14 @@ interface State {
 }
 
 interface GigNode {
+  nodeId: NodeId;
+
   text?: {
     from: string;
     text: string | string[];  // can be multiple lines, support markdown
   }[];
 
-  decision?: DecisionOption[];
+  decision?: (DecisionOption | undefined)[];
 }
 
 interface DecisionOption {
@@ -35,10 +39,18 @@ interface DiceCheck {
   dice: [number, number];
   target: number;
 
+  isAlreadyWon: boolean;
+
   bonuses?: DiceBonus[];
   bonus: number;
 
-  retries?: number;
+  retries: {
+    maxRetries: number;
+    retriesDone: number;
+    retryCost: number;
+    pendingRetry: boolean;
+  };
+
 }
 
 
