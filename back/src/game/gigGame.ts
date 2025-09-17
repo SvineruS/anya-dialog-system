@@ -252,7 +252,7 @@ export class GigDiceCheck {
     this.isThisDicePendingRetry = this.decision.node.pendingRollRetry === this.decision.decisionId;
 
     this.alreadyWon = this.stateHelper().diceAlreadyWin(this.diceId).get();
-    this.retries = this.stateHelper().diceRetriesDone(this.diceId).get();
+    this.retries = this.stateHelper().diceRetriesDone(this.diceId).get() || 0;
   }
 
 

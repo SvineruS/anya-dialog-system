@@ -1,7 +1,7 @@
-import type {GigNode, State} from "../../back/src/types/GigFront.ts";
+import type {State} from "../../back/src/types/GigFront.ts";
+import {GigNode as EvaluatedGigNode} from "../../back/src/types/GigFront.ts";
 import {GigGame} from "../../back/src/game/gigGame";
 import {InitialState} from "../../back/src/types/GigDefault.ts";
-import {GigNode as EvaluatedGigNode} from "../../back/src/types/GigFront.ts";
 
 // async function getGigNode(): Promise<GigNode> {
 //   const res = await fetch("/api/getGame");
@@ -41,7 +41,7 @@ const initialState: InitialState = {
 const gigGame = GigGame.createNewGame(initialState, "gig1");
 export type Game =  {node: EvaluatedGigNode, state: State}
 
-export async function getGigGame(): Promise<Game> {
+export async function getGigGame() {
   const game = gigGame.getGame()
   console.log(game)
   return game;
