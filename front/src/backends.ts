@@ -1,7 +1,7 @@
-import type {State} from "../../back/src/types/GigFront.ts";
-import {GigNode as EvaluatedGigNode} from "../../back/src/types/GigFront.ts";
-import {GigGame} from "../../back/src/game/gigGame";
-import {InitialState} from "../../back/src/types/GigDefault.ts";
+import {GameService} from "../../back/src/services/gameService"
+import { Repository } from "../../back/src/repositories/repository.ts";
+import { GameResult } from "../../back/src/types/front/gigFrontTypes.ts";
+
 
 // async function getGigNode(): Promise<GigNode> {
 //   const res = await fetch("/api/getGame");
@@ -20,36 +20,37 @@ import {InitialState} from "../../back/src/types/GigDefault.ts";
 //   return res.json();
 // }
 
-const initialState: InitialState = {
-  character: {
-    strength: 10,
-    charisma: 7,
-    intelligence: 6,
-    marksmanship: 7,
-    stealth: 8,
 
-    credits: 50,
-    // health: 10,
-    // streetCred: 0,
-    // maxHealth: 10,
-  },
-  inventory: {},
-  globalState: {},
+const repository = new Repository();
+const gameService = new GameService(repository);
+
+
+const userId = "user1";
+
+
+
+export async function getMissions() {
+  const missions = gameService.getMissions(userId);
+  console.log(missions)
+  return missions;
 }
 
-
-const gigGame = GigGame.createNewGame(initialState, "gig1");
-export type Game =  {node: EvaluatedGigNode, state: State}
-
-export async function getGigGame() {
-  const game = gigGame.getGame()
+export async function startGigGame(gigId: string) {
+  const game = gameService.startGame(userId, gigId);
   console.log(game)
   return game;
 }
 
-export async function decide(nodeId: string, decisionIndex?: number, retry?: boolean) {
-   const result = gigGame.makeDecision(nodeId, decisionIndex, retry);
-   console.log("decide", nodeId, decisionIndex, retry, result);
-   const game = await getGigGame();
-   return { game, result  };
+
+export async function getGigGame(gameId: string): Promise<GameResult> {
+  const game = gameService.showGame(userId, gameId);
+  console.log(game)
+  return game;
+}
+
+export async function decide(gameId: string, nodeId: string, decisionIndex?: number, retry?: boolean): Promise<{game: GameResult, result: any}> {
+  console.log("decide", nodeId, decisionIndex, retry);
+  const result = gameService.makeDecision(userId, gameId, nodeId, decisionIndex, retry);
+  console.log(result)
+   return result;
 }

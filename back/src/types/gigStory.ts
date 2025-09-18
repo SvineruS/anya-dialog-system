@@ -2,34 +2,13 @@ type Evaluable = string;  // can be evaluated in JS context with game state, sho
 type Attribute = "strength" | "charisma" | "intelligence" | "marksmanship" | "stealth";
 
 
-interface InitialState {
-  character: { [key in Attribute]: number } & { credits: number };  // character attributes, money, etc
-  inventory: { [itemId: string]: number };  // itemId to quantity mapping
-  globalState: { [key: string]: any };  // persistent state across gigs, e.g. flags for story progression
-}
-
-interface GigState {
-  gigState: { [key: string]: any };  // state specific to the current gig, reset when gig ends
-  game: {
-    gigId: string; // current gig id
-    currentNodeId: NodeId; // current node in the gig graph
-    pendingRetry?: number; // if set, indicates a pending retry for a dice roll (stores the decisionId)
-
-    [key: `diceLastResult_${string}`]: { rolls: number[]; isSuccess: boolean }
-    [key: `diceAlreadyWin_${string}`]: boolean
-    [key: `diceRetriesDone_${string}`]: number
-  }
-}
-
-type State = InitialState & GigState;
-
 
 // GigGraph is a collection of GigNodes identified by NodeId, forming a dialogue tree
-type GigGraph = { [id: NodeId]: GigNode };
+type  GigStoryGraph = { [id: NodeId]: Node };
 type NodeId = string;
 
 // Node presenting dialogue and leading to the next node
-interface GigNode {
+interface Node {
   actions?: Action[];
   text?: {
     from: string;
@@ -119,11 +98,9 @@ interface Action_ModifyState {
 export {
   Evaluable,
   Attribute,
-  InitialState,
-  State,
-  GigGraph,
+  GigStoryGraph,
   NodeId,
-  GigNode,
+  Node,
   Branch,
   DecisionOption,
   Payable,

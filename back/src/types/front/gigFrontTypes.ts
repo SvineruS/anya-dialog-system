@@ -1,23 +1,37 @@
-import {NodeId} from "./GigDefault";
+import {NodeId} from "../gigStory";
+import { GigState, Status } from "../state";
+import { GigMetadata } from "../gig";
 
 type Attribute = "strength" | "charisma" | "intelligence" | "marksmanship" | "stealth";
 
-interface State {
-  character: { [key in Attribute]: number } & { credits: number };
-  inventory: { [itemId: string]: number };
-  globalState: { [key: string]: number };
-  gigState: { [key: string]: number };
+
+interface MissionToSelect extends GigMetadata {
+  status: Status;
 }
 
-interface GigNode {
+interface GameResult {
+  history: EvaluatedHistory;
+  node: Node;
+  state: GigState;
+}
+
+interface EvaluatedHistory {
+  history: NodeId[];
+  nodes: { [id: NodeId]: NodeText[]};
+}
+
+
+interface Node {
   nodeId: NodeId;
 
-  text?: {
-    from: string;
-    text: string | string[];  // can be multiple lines, support markdown
-  }[];
+  text?: NodeText[];
 
   decision?: (DecisionOption | undefined)[];
+}
+
+interface NodeText {
+  from: string;
+  text: string | string[];  // can be multiple lines, support markdown
 }
 
 interface DecisionOption {
@@ -39,9 +53,10 @@ interface DiceCheck {
   dice: [number, number];
   target: number;
 
+  lastResult?: { rolls: number[]; isSuccess: boolean }
   isAlreadyWon: boolean;
 
-  bonuses?: DiceBonus[];
+  bonuses: DiceBonus[];
   bonus: number;
 
   retries: {
@@ -70,9 +85,12 @@ interface DiceBonus_ConditionalBonus {
 
 
 export {
+  MissionToSelect,
+  GameResult,
+  EvaluatedHistory,
   Attribute,
-  State,
-  GigNode,
+  Node,
+  NodeText,
   DecisionOption,
   Payable,
   DiceCheck,
