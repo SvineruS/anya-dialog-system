@@ -1,6 +1,7 @@
-import type { GigNode, State } from "../../back/src/types/GigDto.ts";
-import { GigGame } from "../../back/src/game/gigGame";
-import { gig } from "../../back/src/gigs/gig1.ts";
+import {GameService} from "../../back/src/services/gameService"
+import { Repository } from "../../back/src/repositories/repository.ts";
+import { GameResult } from "../../back/src/types/front/gigFrontTypes.ts";
+
 
 // async function getGigNode(): Promise<GigNode> {
 //   const res = await fetch("/api/getGame");
@@ -19,36 +20,37 @@ import { gig } from "../../back/src/gigs/gig1.ts";
 //   return res.json();
 // }
 
-const initialState = {
-  character: {
-    strength: 10,
-    dexterity: 7,
-    intelligence: 6,
-    charisma: 7,
-    reputation: 8,
 
-    credits: 50,
-    // health: 10,
-    // streetCred: 0,
-    // maxHealth: 10,
-  },
-  inventory: {},
-  globalState: {},
-  gigState: {},
+const repository = new Repository();
+const gameService = new GameService(repository);
+
+
+const userId = "user1";
+
+
+
+export async function getMissions() {
+  const missions = gameService.getMissions(userId);
+  console.log(missions)
+  return missions;
 }
 
-
-const gigGame = new GigGame(gig, initialState);
-export type Game = {node: GigNode, nodeId: string, state: State}
-
-export async function getGigGame(): Promise<Game> {
-  const res = gigGame.getGame()
-  const game = { node: res.evaluatedNode, nodeId: res.nodeId, state: res.state };
+export async function startGigGame(gigId: string) {
+  const game = gameService.startGame(userId, gigId);
   console.log(game)
   return game;
 }
 
-export async function decide(nodeId: string, decisionIndex?: number) {
-   gigGame.decide(nodeId, decisionIndex);
-  return { game: await getGigGame() };
+
+export async function getGigGame(gameId: string): Promise<GameResult> {
+  const game = gameService.showGame(userId, gameId);
+  console.log(game)
+  return game;
+}
+
+export async function decide(gameId: string, nodeId: string, decisionIndex?: number, retry?: boolean): Promise<{game: GameResult, result: any}> {
+  console.log("decide", nodeId, decisionIndex, retry);
+  const result = gameService.makeDecision(userId, gameId, nodeId, decisionIndex, retry);
+  console.log(result)
+   return result;
 }

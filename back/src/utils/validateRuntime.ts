@@ -1,13 +1,13 @@
 import { safeEval } from './safeEval';
-import { GigGraph, GigNode, NodeId } from '../types/GigDefault';
+import { GigStoryGraph, Node, NodeId } from '../types/gigStory';
 
-export function validateGigGraph(graph: GigGraph): string[] {
+export function validateGigGraph(graph: GigStoryGraph): string[] {
   const errors: string[] = [];
   const allNodeIds = new Set(Object.keys(graph));
   const referencedNodeIds = new Set<string>();
 
   // Helper to validate mutual exclusivity
-  function validateMutualExclusivity(nodeId: NodeId, fields: (keyof GigNode)[]) {
+  function validateMutualExclusivity(nodeId: NodeId, fields: (keyof Node)[]) {
     const presentFields = fields.filter((field) => graph[nodeId][field] !== undefined);
     if (presentFields.length > 1) {
       errors.push(`Node ${nodeId} has multiple mutually exclusive fields: ${presentFields.join(', ')}`);

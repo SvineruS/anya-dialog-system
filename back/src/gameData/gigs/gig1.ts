@@ -1,6 +1,25 @@
-import { GigGraph } from "../types/GigDefault";
+import { GigStoryGraph } from "../../types/gigStory";
+import { GigMetadata, GigStoryWithMetadata } from "../../types/gig";
 
-export const gig: GigGraph = {
+const metadata: GigMetadata = {
+  id: "corp_gig_1",
+  name: "Corporate Offer",
+  description: "A mysterious stranger offers you a gig with a corporation. Your choices will shape your path in the neon-lit city.",
+  image: "https://example.com/corp_gig_image.png",
+  location: "southAscendia",
+  client: "Mysterious Stranger",
+  affiliation: "corporation",
+  tier: 1,
+  startCost: 10,
+  // todo what if rewards are conditional?
+  rewards: {
+    credits: 100,
+    reputation: 10,
+    xp: 50,
+  }
+}
+
+const story: GigStoryGraph = {
   start: {
     text: [
       { from: "narrator", text: "You wake up in your cramped capsule apartment. Neon leaks in from the window." },
@@ -229,3 +248,4 @@ export const gig: GigGraph = {
 
 };
 
+export default { metadata, story } as GigStoryWithMetadata;
