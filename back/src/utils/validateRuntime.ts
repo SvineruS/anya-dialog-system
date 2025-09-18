@@ -4,7 +4,9 @@ import { GigStoryGraph, Node, NodeId } from '../types/gigStory';
 export function validateGigGraph(graph: GigStoryGraph): string[] {
   const errors: string[] = [];
   const allNodeIds = new Set(Object.keys(graph));
+  allNodeIds.add("end")
   const referencedNodeIds = new Set<string>();
+  referencedNodeIds.add(Object.keys(graph)[0]); // starting node
 
   // Helper to validate mutual exclusivity
   function validateMutualExclusivity(nodeId: NodeId, fields: (keyof Node)[]) {

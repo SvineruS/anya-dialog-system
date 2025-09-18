@@ -1,14 +1,14 @@
 import { validateTypeScript } from "./utils/validateTypes";
-import { gig } from "./gigs/gig1";
+import gig from "./gameData/gigs/gig2";
 import { validateGigGraph } from "./utils/validateRuntime";
 import { safeEval } from "./utils/safeEval";
 
 
-validateTypeScript(`import { GigGraph } from "./types/";
+validateTypeScript(`import { GigStoryGraph } from "./types/gigStory";
 
-export const gig: GigGraph = ` + JSON.stringify(gig));
+export const gig: GigStoryGraph = ` + JSON.stringify(gig.story));
 
-validateGigGraph(gig);
+console.log(validateGigGraph(gig.story));
 
 const state = { gigState: { someVar: 1, anotherVar: 4 } };
 console.log(safeEval(`gigState.someVar = 2`, state));

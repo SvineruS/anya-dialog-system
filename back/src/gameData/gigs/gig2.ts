@@ -40,27 +40,6 @@ const gig: GigStoryWithMetadata = {
       "decision": [
         {
           "text": "Brute Force — run in, rip open the trunk and yank the charge. (Strength Check)",
-          "next": "brute_force_trunk"
-        },
-        {
-          "text": "Talk Our Way Through — pretend to be maintenance and convince the drone to power down. (Charisma Check)",
-          "next": "talk_drone"
-        },
-        {
-          "text": "Disable from Distance — sneak the catwalks, hack the drone and swap quietly. (Intelligence + Stealth Check)",
-          "next": "disable_distance"
-        }
-      ]
-    },
-
-    "brute_force_trunk": {
-      "text": [
-        { "from": "twin", "text": "You got it. Putting on the gloves." },
-        { "from": "system", "text": "(Performing Strength Check...)" }
-      ],
-      "decision": [
-        {
-          "text": "Perform Strength Check",
           "dice": {
             "dice": [1, 6],
             "target": 6,
@@ -69,6 +48,36 @@ const gig: GigStoryWithMetadata = {
             ],
             "success": "trunk_open_success",
             "fail": "trunk_open_fail"
+          }
+        },
+        {
+          "text": "Talk Our Way Through — pretend to be maintenance and convince the drone to power down. (Charisma Check)",
+          "dice": {
+            "dice": [1, 6],
+            "target": 7,
+            "bonuses": [
+              { "type": "characterAttribute", "attribute": "charisma" }
+            ],
+            "success": "drone_bluff_success",
+            "fail": "drone_bluff_fail"
+          }
+        },
+        {
+          "text": "Disable from Distance — sneak the catwalks, hack the drone and swap quietly. (Intelligence + Stealth Check)",
+          "dice": {
+            "dice": [1, 6],
+            "target": 8,
+            "bonuses": [
+              { "type": "characterAttribute", "attribute": "intelligence" },
+              {
+                "type": "condition",
+                "condition": "player.hasStealthGear == 1",
+                "amount": 1,
+                "text": "Using stealth rig"
+              }
+            ],
+            "success": "drone_hack_success",
+            "fail": "drone_hack_fail"
           }
         }
       ]
@@ -96,27 +105,6 @@ const gig: GigStoryWithMetadata = {
       "next": "end_failure"
     },
 
-    "talk_drone": {
-      "text": [
-        { "from": "twin", "text": "Alright, you try to bluff. The drone's audio filter is strict." },
-        { "from": "system", "text": "(Performing Charisma Check...)" }
-      ],
-      "decision": [
-        {
-          "text": "Perform Charisma Check",
-          "dice": {
-            "dice": [1, 6],
-            "target": 7,
-            "bonuses": [
-              { "type": "characterAttribute", "attribute": "charisma" }
-            ],
-            "success": "drone_bluff_success",
-            "fail": "drone_bluff_fail"
-          }
-        }
-      ]
-    },
-
     "drone_bluff_success": {
       "text": [
         { "from": "twin", "text": "Maintenance voice accepted. Drone powers down for 45 seconds. No alarms." },
@@ -136,32 +124,6 @@ const gig: GigStoryWithMetadata = {
       "next": "approach_target"
     },
 
-    "disable_distance": {
-      "text": [
-        { "from": "twin", "text": "You climb the catwalks. The drone's comms are exposed from above." },
-        { "from": "system", "text": "(Performing Intelligence + Stealth Check...)" }
-      ],
-      "decision": [
-        {
-          "text": "Perform Intelligence+Stealth Check",
-          "dice": {
-            "dice": [1, 6],
-            "target": 8,
-            "bonuses": [
-              { "type": "characterAttribute", "attribute": "intelligence" },
-              {
-                "type": "condition",
-                "condition": "player.hasStealthGear == 1",
-                "amount": 1,
-                "text": "Using stealth rig"
-              }
-            ],
-            "success": "drone_hack_success",
-            "fail": "drone_hack_fail"
-          }
-        }
-      ]
-    },
 
     "drone_hack_success": {
       "text": [
@@ -188,23 +150,8 @@ const gig: GigStoryWithMetadata = {
         }
       ],
       "decision": [
-        { "text": "Brute Force — Try to force the trunk open anyway.", "next": "force_target_trunk" },
         {
-          "text": "Spoof the trunk's smart lock with a maintenance recall signal. (Intelligence Check)",
-          "next": "spoof_target_trunk"
-        },
-        { "text": "Distract the drone patrol and have Janks pop it. (Charisma Check)", "next": "distract_for_pop" }
-      ]
-    },
-
-    "force_target_trunk": {
-      "text": [
-        { "from": "twin", "text": "You try to rip it open by force." },
-        { "from": "system", "text": "(Performing Strength Check #2...)" }
-      ],
-      "decision": [
-        {
-          "text": "Perform Strength Check",
+          "text": "Brute Force — Try to force the trunk open anyway.",
           "dice": {
             "dice": [1, 6],
             "target": 6,
@@ -214,9 +161,34 @@ const gig: GigStoryWithMetadata = {
             "success": "swap_success",
             "fail": "force_target_fail"
           }
+        },
+        {
+          "text": "Spoof the trunk's smart lock with a maintenance recall signal. (Intelligence Check)",
+          "dice": {
+            "dice": [1, 6],
+            "target": 7,
+            "bonuses": [
+              { "type": "characterAttribute", "attribute": "intelligence" }
+            ],
+            "success": "spoof_success",
+            "fail": "spoof_fail"
+          }
+        },
+        {
+          "text": "Distract the drone patrol and have Janks pop it. (Charisma Check)",
+          "dice": {
+            "dice": [1, 6],
+            "target": 6,
+            "bonuses": [
+              { "type": "characterAttribute", "attribute": "charisma" }
+            ],
+            "success": "distract_success",
+            "fail": "distract_fail"
+          }
         }
       ]
     },
+
 
     "force_target_fail": {
       "text": [
@@ -227,29 +199,6 @@ const gig: GigStoryWithMetadata = {
       "next": "end_failure"
     },
 
-    "spoof_target_trunk": {
-      "text": [
-        {
-          "from": "twin",
-          "text": "I’ll reroute a dummy signal through the lot’s maintenance channel. Might trick the car’s system into thinking it’s being recalled for service."
-        },
-        { "from": "system", "text": "(Performing Intelligence Check...)" }
-      ],
-      "decision": [
-        {
-          "text": "Perform Intelligence Check",
-          "dice": {
-            "dice": [1, 6],
-            "target": 7,
-            "bonuses": [
-              { "type": "characterAttribute", "attribute": "intelligence" }
-            ],
-            "success": "spoof_success",
-            "fail": "spoof_fail"
-          }
-        }
-      ]
-    },
 
     "spoof_success": {
       "text": [
@@ -271,32 +220,9 @@ const gig: GigStoryWithMetadata = {
       "actions": [
         { "type": "setVar", "var": "gigState.alerted_by_spoof", "set": 1 }
       ],
-      "next": "force_target_trunk"
+      "next": "approach_target"
     },
 
-    "distract_for_pop": {
-      "text": [
-        {
-          "from": "twin",
-          "text": "You try a distraction — something loud and messy to pull the drone away so Janks can pop it."
-        },
-        { "from": "system", "text": "(Performing Charisma Check...)" }
-      ],
-      "decision": [
-        {
-          "text": "Perform Charisma Check",
-          "dice": {
-            "dice": [1, 6],
-            "target": 6,
-            "bonuses": [
-              { "type": "characterAttribute", "attribute": "charisma" }
-            ],
-            "success": "distract_success",
-            "fail": "distract_fail"
-          }
-        }
-      ]
-    },
 
     "distract_success": {
       "text": [
@@ -316,7 +242,7 @@ const gig: GigStoryWithMetadata = {
       "actions": [
         { "type": "setVar", "var": "gigState.alerted_by_distraction", "set": 1 }
       ],
-      "next": "force_target_trunk"
+      "next": "approach_target"
     },
 
     "swap_success": {
