@@ -49,15 +49,17 @@ export class GigHelpers {
 
   private doAction_setStateVar(action: Action_ModifyState) {
     const [stateType, key] = action.var.split('.', 2) as [keyof GigState, string];
-    if (stateType !== 'globalState' && stateType !== 'gigState')
+    if (stateType !== 'globalState' && stateType !== 'gigState' && stateType !== 'character')
       throw new Error(`State ${stateType} not found/allowed`);
 
     const state = this.game.state[stateType];
 
     if (action.set !== undefined) {
+      // @ts-ignore
       state[key] = action.set;
     } else if (action.add !== undefined) {
-      state[key] += action.add;
+      // @ts-ignore
+      state[key] = (state[key] ?? 0) + action.add;
     } else {
       throw new Error(`Action must have either set or add defined.`);
     }

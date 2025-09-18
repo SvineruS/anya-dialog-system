@@ -38,9 +38,6 @@ export class GigGame {
 
 
   show(): GameResult {
-    if (this.state.engine.status !== 'in-progress')
-      throw new Error(`Cannot show game, status is "${this.state.engine.status}"`);
-
     const currentNode = this.node(this.state.engine.currentNodeId);
 
     return {
@@ -52,6 +49,9 @@ export class GigGame {
   }
 
   makeDecision(nodeId: NodeId, decisionIndex?: number, retry?: boolean) {
+    if (this.state.engine.status !== 'in-progress')
+      throw new Error(`Cannot make decisions on a completed or failed gig.`);
+
     const currentNode = this.node(this.state.engine.currentNodeId);
     const result = currentNode.makeDecision(nodeId, decisionIndex, retry);
 

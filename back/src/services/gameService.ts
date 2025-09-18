@@ -7,11 +7,11 @@ import { getAllGigs } from "../gameData/gigs";
 
 const defaultUser: UserStatePart = {
   character: {
-    strength: 10,
-    intelligence: 8,
-    charisma: 7,
-    marksmanship: 6,
-    stealth: 5,
+    strength: 3,
+    intelligence: 3,
+    charisma: 3,
+    marksmanship: 3,
+    stealth: 3,
 
     tier: 1,
     streetCred: 0,

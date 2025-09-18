@@ -1,8 +1,12 @@
-import gig1 from "./gig1";
 import { GigStoryWithMetadata } from "../../types/gig";
 
+import gig1 from "./gig1";
+import gig2 from "./gig2";
 
-const gigsArray: GigStoryWithMetadata[] = [gig1];
+
+const gigsArray: GigStoryWithMetadata[] = [
+  gig1, gig2
+];
 const gigsById: Record<string, GigStoryWithMetadata> = {};
 
 gigsArray.forEach(gig => {

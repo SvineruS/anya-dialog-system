@@ -142,7 +142,7 @@ const story: GigStoryGraph = {
         text: "Sneak up (convince bartender to spill info)",
         dice: {
           dice: [2, 6],
-          target: 18,
+          target: 14,
           bonuses: [
             { type: "characterAttribute", attribute: "charisma" },
             { type: "condition", condition: "gigState.waited == 1", amount: +2, text: "You didn't answer to corp yet" },
