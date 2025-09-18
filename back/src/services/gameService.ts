@@ -30,7 +30,10 @@ const emptyMissionState: MissionStatePart = {
 
 
 export class GameService {
-  constructor(private repository: Repository) {
+  private repository: Repository;
+
+  constructor(repository: Repository) {
+    this.repository = repository;
   }
 
 

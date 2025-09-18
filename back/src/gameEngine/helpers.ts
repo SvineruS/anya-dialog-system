@@ -7,7 +7,10 @@ import { EvaluatedHistory, NodeText } from "../types/front/gigFrontTypes";
 
 
 export class GigHelpers {
-  constructor(private game: GigGame) {
+  private game: GigGame;
+
+  constructor(game: GigGame) {
+    this.game = game;
 
   }
 
