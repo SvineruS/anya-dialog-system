@@ -69,12 +69,7 @@ const gig: GigStoryWithMetadata = {
             "target": 8,
             "bonuses": [
               { "type": "characterAttribute", "attribute": "intelligence" },
-              {
-                "type": "condition",
-                "condition": "player.hasStealthGear == 1",
-                "amount": 1,
-                "text": "Using stealth rig"
-              }
+              { "type": "characterAttribute", "attribute": "stealth" },
             ],
             "success": "drone_hack_success",
             "fail": "drone_hack_fail"
@@ -85,6 +80,7 @@ const gig: GigStoryWithMetadata = {
 
     "trunk_open_success": {
       "text": [
+        { "from": "twin", "text": "You got it. Putting on the gloves." },
         {
           "from": "twin",
           "text": "Trunk popped like a soda can. Charge’s still warm. Janks, you dumbass, you almost blew this poor sucker."
@@ -95,6 +91,7 @@ const gig: GigStoryWithMetadata = {
 
     "trunk_open_fail": {
       "text": [
+        { "from": "twin", "text": "You got it. Putting on the gloves." },
         { "from": "twin", "text": "No good. I hear boots. Shit. The Griffs are here. Sorry Janks." },
         { "from": "system", "text": "(As you escape you hear gunshots and the Wilhelm scream)" },
         { "from": "twin", "text": "Mission blown. We need to ghost before they catch us." }
@@ -107,6 +104,7 @@ const gig: GigStoryWithMetadata = {
 
     "drone_bluff_success": {
       "text": [
+        { "from": "twin", "text": "Alright, you try to bluff. The drone's audio filter is strict." },
         { "from": "twin", "text": "Maintenance voice accepted. Drone powers down for 45 seconds. No alarms." },
         { "from": "janks", "text": "Do it quick, I can't hold this together much longer." }
       ],
@@ -115,6 +113,7 @@ const gig: GigStoryWithMetadata = {
 
     "drone_bluff_fail": {
       "text": [
+        { "from": "twin", "text": "Alright, you try to bluff. The drone's audio filter is strict." },
         { "from": "twin", "text": "The drone chirps an alert — somebody didn't buy it." },
         { "from": "system", "text": "Guards are alerted." }
       ],
@@ -127,6 +126,7 @@ const gig: GigStoryWithMetadata = {
 
     "drone_hack_success": {
       "text": [
+        { "from": "twin", "text": "You climb the catwalks. The drone's comms are exposed from above." },
         { "from": "twin", "text": "Hack complete. Drone disabled silently. You lower down and begin the swap." }
       ],
       "next": "approach_target"
@@ -134,6 +134,7 @@ const gig: GigStoryWithMetadata = {
 
     "drone_hack_fail": {
       "text": [
+        { "from": "twin", "text": "You climb the catwalks. The drone's comms are exposed from above." },
         { "from": "twin", "text": "The hack hiccuped and the drone flickers — someone noticed." }
       ],
       "actions": [
@@ -158,7 +159,7 @@ const gig: GigStoryWithMetadata = {
             "bonuses": [
               { "type": "characterAttribute", "attribute": "strength" }
             ],
-            "success": "swap_success",
+            "success": "force_target_success",
             "fail": "force_target_fail"
           }
         },
@@ -189,9 +190,21 @@ const gig: GigStoryWithMetadata = {
       ]
     },
 
+    "force_target_success": {
+      "text": [
+        { "from": "twin", "text": "You try to rip it open by force." },
+        {
+          "from": "twin",
+          "text": "Janks: Thanks comp, thought I was gonna bite it. I’m definitely calling you if I screw something up again…"
+        },
+        { "from": "twin", "text": "Payload swapped successfully. Mission complete." }
+      ],
+      "next": "end_success"
+    },
 
     "force_target_fail": {
       "text": [
+        { "from": "twin", "text": "You try to rip it open by force." },
         { "from": "twin", "text": "No good. I hear boots. Shit. The Griffs are here. Sorry Janks." },
         { "from": "system", "text": "(As you escape you hear gunshots and the Wilhelm scream)" },
         { "from": "twin", "text": "Mission blown. We need to ghost before they catch us." }
@@ -202,6 +215,10 @@ const gig: GigStoryWithMetadata = {
 
     "spoof_success": {
       "text": [
+        {
+          "from": "twin",
+          "text": "I’ll reroute a dummy signal through the lot’s maintenance channel. Might trick the car’s system into thinking it’s being recalled for service."
+        },
         { "from": "twin", "text": "Boom — signal spoofed. Trunk just opened like I booked a valet. No alarms." },
         {
           "from": "janks",
@@ -214,6 +231,10 @@ const gig: GigStoryWithMetadata = {
 
     "spoof_fail": {
       "text": [
+        {
+          "from": "twin",
+          "text": "I’ll reroute a dummy signal through the lot’s maintenance channel. Might trick the car’s system into thinking it’s being recalled for service."
+        },
         { "from": "twin", "text": "The spoof didn't stick — the trunk holds and an alarm tone warms up." },
         { "from": "system", "text": "Guards are converging." }
       ],
@@ -245,16 +266,6 @@ const gig: GigStoryWithMetadata = {
       "next": "approach_target"
     },
 
-    "swap_success": {
-      "text": [
-        {
-          "from": "twin",
-          "text": "Janks: Thanks comp, thought I was gonna bite it. I’m definitely calling you if I screw something up again…"
-        },
-        { "from": "twin", "text": "Payload swapped successfully. Mission complete." }
-      ],
-      "next": "end_success"
-    },
 
     "end_success": {
       "actions": [
