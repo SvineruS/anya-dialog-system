@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { getMissions, startGigGame } from "../backends.ts";
-import { MissionToSelect } from "../../../back/src/types/front/gigFrontTypes.ts";
+import { MissionToSelect } from "../../../back/src/GigSystem/types/front/gigFrontTypes.ts";
 import Game from "./Game.tsx";
 
 

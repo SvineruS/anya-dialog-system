@@ -1,8 +1,8 @@
-import { GigGame } from "../gameEngine/gigGame";
-import { GigState, MissionStatePart, UserStatePart } from "../types/state";
-import { NodeId } from "../types/gigStory";
+import { GigGame } from "../../GigSystem/gameEngine/gigGame";
+import { GigState, MissionStatePart, UserStatePart } from "../../GigSystem/types/state";
+import { NodeId } from "../../GigSystem/types/gigStory";
 import { Repository } from "../repositories/repository";
-import { getAllGigs } from "../gameData/gigs";
+import { getAllGigs } from "../../GigSystem/gameData/gigs";
 
 
 const defaultUser: UserStatePart = {

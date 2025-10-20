@@ -1,4 +1,4 @@
-import { DiceCheck } from "../../../back/src/types/front/gigFrontTypes.ts";
+import { DiceCheck } from "../../../back/src/GigSystem/types/front/gigFrontTypes.ts";
 
 
 export function DecisionDice({ dice, handleRetry }: {

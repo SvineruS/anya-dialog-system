@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { decide, getGigGame } from "../backends.ts";
-import { GameResult, NodeText } from "../../../back/src/types/front/gigFrontTypes.ts";
+import { GameResult, NodeText } from "../../../back/src/GigSystem/types/front/gigFrontTypes.ts";
 import { DecisionDice } from "./DecisionDice.tsx";
 
 

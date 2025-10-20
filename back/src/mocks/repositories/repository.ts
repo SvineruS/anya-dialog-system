@@ -1,4 +1,4 @@
-import { MissionStatePart, Status, UserStatePart } from "../types/state";
+import { MissionStatePart, Status, UserStatePart } from "../../GigSystem/types/state";
 
 
 export class Repository {

@@ -1,6 +1,6 @@
-import {GameService} from "../../back/src/services/gameService"
-import { Repository } from "../../back/src/repositories/repository.ts";
-import { GameResult } from "../../back/src/types/front/gigFrontTypes.ts";
+import {GameService} from "../../back/src/mocks/services/gameService"
+import { Repository } from "../../back/src/mocks/repositories/repository.ts";
+import { GameResult } from "../../back/src/GigSystem/types/front/gigFrontTypes.ts";
 
 
 // async function getGigNode(): Promise<GigNode> {
