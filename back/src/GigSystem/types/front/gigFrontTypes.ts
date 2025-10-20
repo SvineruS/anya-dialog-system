@@ -26,7 +26,7 @@ interface Node {
 
   text?: NodeText[];
 
-  decision?: (DecisionOption | undefined)[];
+  decision?: DecisionOption[];
 }
 
 interface NodeText {

@@ -158,7 +158,7 @@ export class GigDiceCheck {
 
 
 function rollNDices(numDice: number, diceSides: number) {
-  const rolls = [];
+  const rolls: number[] = [];
   let total = 0;
   for (let i = 0; i < numDice; i++) {
     const rand = Math.floor(Math.random() * diceSides) + 1
