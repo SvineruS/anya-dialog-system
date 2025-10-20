@@ -3,7 +3,7 @@ import { GigStoryWithMetadata } from "../../types/gig";
 import testGig from "./testGig";
 import testGig2 from "./testGig2";
 import gig1 from "./gig1_theCityBreathes";
-import { validateGig } from "../../utils/validation";
+// import { validateGig } from "../../utils/validation";
 
 
 const gigsArray: GigStoryWithMetadata[] = [
