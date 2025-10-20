@@ -34,7 +34,6 @@ export default function Game(props: { gameId: string }) {
   );
 }
 
-
 export function GameView({ game, handleDecision }: {
   game: GameResult,
   handleDecision: (decisionIndex?: number, retry?: boolean) => void
@@ -44,13 +43,7 @@ export function GameView({ game, handleDecision }: {
   return (
     <div style={{ flex: 1, padding: "1rem", overflow: "auto" }}>
 
-      {game.history.history.map((nodeId, historyIndex) =>
-        game.history.nodes[nodeId] && (
-        <div key={historyIndex}>
-          <DialogLine nodeText={game.history.nodes[nodeId]}/>
-          <hr/>
-        </div>
-      ))}
+      <History game={game}/>
 
       <hr/>
       {game.node.text && <DialogLine nodeText={game.node.text}/>}
@@ -106,4 +99,40 @@ function DialogLine({ nodeText }: { nodeText: NodeText[] }) {
       {Array.isArray(line.text) ? line.text.join(" ") : line.text}
     </p>
   ))
+}
+
+
+function History({ game }: { game: GameResult }) {
+
+  const result = [];
+
+  for (let i = 0; i < game.history.history.length; i++) {
+    const historyItem = game.history.history[i];
+    const node = game.history.nodes[historyItem.nodeId];
+    if (!node) continue;
+
+    result.push(
+      <div key={i}>
+        <DialogLine nodeText={node}/>
+        {historyItem.decisionIndex !== undefined &&
+          <div style={{ marginLeft: "1rem", fontStyle: "italic" }}>
+            You chose: {node[historyItem.decisionIndex]?.text || "<unknown option>"}
+          </div>
+        }
+        {
+          historyItem.dice &&
+          <div style={{ marginLeft: "1rem", marginTop: "0.5rem" }}>
+            Dice Roll: {historyItem.dice.rolls.join(", ")} -
+            {historyItem.dice.isSuccess ?
+              <span style={{ color: "green" }}> ✅ Success</span> :
+              <span style={{ color: "red" }}> ❌ Failure</span>}
+          </div>
+        }
+        <hr/>
+      </div>
+    );
+  }
+
+
+  return result;
 }

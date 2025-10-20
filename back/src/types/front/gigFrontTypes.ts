@@ -1,5 +1,5 @@
 import {NodeId} from "../gigStory";
-import { GigState, Status } from "../state";
+import { GigState, HistoryState, Status } from "../state";
 import { GigMetadata } from "../gig";
 
 type Attribute = "strength" | "charisma" | "intelligence" | "marksmanship" | "stealth";
@@ -16,7 +16,7 @@ interface GameResult {
 }
 
 interface EvaluatedHistory {
-  history: NodeId[];
+  history: HistoryState[];
   nodes: { [id: NodeId]: NodeText[]};
 }
 

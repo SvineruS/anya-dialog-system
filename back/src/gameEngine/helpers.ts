@@ -90,7 +90,7 @@ export class GigHelpers {
 
   showHistory(): EvaluatedHistory {
     const history = this.game.state.gigHistory.slice(0, -1)
-    const allNodeIds = new Set(history)
+    const allNodeIds = new Set(history.map(h => h.nodeId));
     const nodes: { [id: NodeId]: NodeText[] } = {};
     Object.entries(getGigById(this.game.gigId).story)
       .forEach(([nodeId, nodeData]) => {

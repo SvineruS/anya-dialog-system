@@ -1,15 +1,20 @@
 import { GigStoryWithMetadata } from "../../types/gig";
 
-import gig1 from "./gig1";
-import gig2 from "./gig2";
+import testGig from "./testGig";
+import testGig2 from "./testGig2";
+import gig1 from "./gig1_theCityBreathes";
+import { validateGig } from "../../utils/validation";
 
 
 const gigsArray: GigStoryWithMetadata[] = [
-  gig1, gig2
+  gig1,
+  testGig,
+  testGig2,
 ];
 const gigsById: Record<string, GigStoryWithMetadata> = {};
 
 gigsArray.forEach(gig => {
+  // validateGig(gig);  // don't work in browser demo
   gigsById[gig.metadata.id] = gig;
 })
 

@@ -55,6 +55,12 @@ export class GigGame {
     const currentNode = this.node(this.state.engine.currentNodeId);
     const result = currentNode.makeDecision(nodeId, decisionIndex, retry);
 
+    const lastHistoryEntry = this.state.gigHistory[this.state.gigHistory.length - 1];
+    lastHistoryEntry.decisionIndex = decisionIndex;
+    if (result?.rollResult)
+      lastHistoryEntry.dice = result.rollResult;
+
+
     if (result?.nextNodeId)
       this.activateNode(result.nextNodeId);
 
@@ -71,7 +77,7 @@ export class GigGame {
     const node = this.node(nodeId);
 
     this.state.engine.currentNodeId = nodeId;
-    this.state.gigHistory.push(nodeId);
+    this.state.gigHistory.push({nodeId});
     node.doActions();
 
 

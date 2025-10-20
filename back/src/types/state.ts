@@ -6,7 +6,7 @@ interface GigState {
 
   engine: EngineState;  // temp engine-specific state, e.g. current node, retries, etc
   gigState: RandomState;  // temp gig-specific state, e.g. drinksCount in a bar gig
-  gigHistory: NodeId[]  // history of visited nodes in the current gig
+  gigHistory: HistoryState[]  // history of visited nodes in the current gig
 }
 
 type UserStatePart = Pick<GigState, "character" | "inventory" | "globalState">
@@ -49,6 +49,14 @@ interface RandomState {
   [key: string]: any  // for any random-related state, e.g. "knowAboutSomething": true
 }
 
+export interface HistoryState {
+  nodeId: NodeId;
+  decisionIndex?: number;
+  dice?: {
+    rolls: number[];
+    isSuccess: boolean;
+  }
+}
 
 
 

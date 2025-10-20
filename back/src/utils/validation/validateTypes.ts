@@ -1,6 +1,6 @@
 import ts from "typescript";
 
-export function validateTypeScript(code: string): void {
+export function validateTypeScript(code: string): string[] {
   const fileName = "src/virtual.ts";
 
   const options: ts.CompilerOptions = {
@@ -34,12 +34,9 @@ export function validateTypeScript(code: string): void {
   const program = ts.createProgram([fileName], options, host);
   const diagnostics = ts.getPreEmitDiagnostics(program);
 
-  if (diagnostics.length === 0) {
-    console.log("✅ Valid TypeScript");
-  } else {
-    for (const d of diagnostics) {
-      const msg = ts.flattenDiagnosticMessageText(d.messageText, "\n");
-      console.error(`❌ Error ${msg}`);
-    }
-  }
+
+  return diagnostics.map(d => {
+    const msg = ts.flattenDiagnosticMessageText(d.messageText, "\n");
+    return msg;
+  })
 }

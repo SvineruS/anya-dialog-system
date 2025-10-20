@@ -2,6 +2,7 @@ import { DiceBonus, DiceCheck } from "../../types/gigStory";
 import { DiceBonus as EvaluatedDiceBonus, DiceCheck as EvaluatedDiceCheck } from "../../types/front/gigFrontTypes";
 import { GigDecisionOption } from "./decisionOption";
 import { EngineState } from "../../types/state";
+import { DecisionReturnType } from "../../types/utils";
 
 
 // todo get default values from gig object by gig tier
@@ -25,7 +26,7 @@ export class GigDiceCheck {
 
 
   // when roll is failed, call this to decide whether to reroll or accept fail
-  retry(retry: boolean) {
+  retry(retry: boolean): DecisionReturnType {
     if (!this.isThisDicePendingRetry())
       throw new Error(`No retry is pending for this dice roll.`);
 

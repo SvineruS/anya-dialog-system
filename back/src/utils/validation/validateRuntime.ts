@@ -1,5 +1,5 @@
-import { safeEval } from './safeEval';
-import { GigStoryGraph, Node, NodeId } from '../types/gigStory';
+import { safeEval } from '../safeEval';
+import { GigStoryGraph, Node, NodeId } from '../../types/gigStory';
 
 export function validateGigGraph(graph: GigStoryGraph): string[] {
   const errors: string[] = [];

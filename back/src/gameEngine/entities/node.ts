@@ -2,6 +2,7 @@ import { Node, NodeId } from "../../types/gigStory";
 import { Node as EvaluatedGigNode } from "../../types/front/gigFrontTypes";
 import { GigGame } from "../gigGame";
 import { GigDecisionOption } from "./decisionOption";
+import { DecisionReturnType } from "../../types/utils";
 
 export class GigNode {
   readonly game: GigGame;
@@ -17,7 +18,7 @@ export class GigNode {
       throw new Error(`Invalid nodeId: ${nodeId}`);
   }
 
-  makeDecision(nodeId: NodeId, decisionIndex?: number, retry?: boolean) {
+  makeDecision(nodeId: NodeId, decisionIndex?: number, retry?: boolean): DecisionReturnType {
     if (nodeId !== this.nodeId)
       throw new Error(`nodeId mismatch. Current node is "${this.nodeId}"`);
 
