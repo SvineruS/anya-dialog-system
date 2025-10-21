@@ -113,8 +113,8 @@ function History({ game }: { game: GameResult }) {
 
     result.push(
       <div key={i}>
-        <DialogLine nodeText={node}/>
-        {historyItem.decisionIndex !== undefined &&
+        {node.text && <DialogLine nodeText={node.text}/>}
+        {node.decision && historyItem.decisionIndex !== undefined &&
           <div style={{ marginLeft: "1rem", fontStyle: "italic" }}>
             You chose: {node.decision[historyItem.decisionIndex]?.text || "<unknown option>"}
           </div>

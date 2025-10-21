@@ -17,7 +17,7 @@ interface GameResult {
 
 interface EvaluatedHistory {
   history: HistoryState[];
-  nodes: { [id: NodeId]: NodeText[]};
+  nodes: { [id: NodeId]: Node};
 }
 
 
