@@ -1,3 +1,5 @@
+import { Attribute, NodeId } from "./common";
+
 export interface EvaluatedNodeData {
   decisionsData?: EvaluatedDecisionData[];
 }

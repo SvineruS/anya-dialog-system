@@ -3,6 +3,7 @@ import { RenderedDecisionOption, RenderedNode } from "../../types/front/gigFront
 import { GigGame } from "../gigGame";
 import { GigDecisionOption } from "./decisionOption";
 import { DecisionReturnType, EvaluatedNodeData } from "../../types/evaluated";
+import { NodeId } from "../../types/common";
 
 export class GigNode {
   readonly game: GigGame;

@@ -1,6 +1,6 @@
 import { GigGame } from "../../GigSystem/gameEngine/gigGame";
 import { GigState, MissionStatePart, UserStatePart } from "../../GigSystem/types/state";
-import { NodeId } from "../../GigSystem/types/gigStory";
+import { NodeId } from "../../GigSystem/types/common";
 import { Repository } from "../repositories/repository";
 import { getAllGigs } from "../../GigSystem/gameData/gigs";
 

@@ -1,6 +1,7 @@
 import { GigState, Status } from "../state";
 import { GigMetadata } from "../gig";
 import { EvaluatedDiceBonus, RollResult } from "../evaluated";
+import { NodeId } from "../common";
 
 
 interface MissionToSelect extends GigMetadata {

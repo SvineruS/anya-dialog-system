@@ -3,6 +3,7 @@ import { Action, Action_ModifyState, Payable } from "../types/gigStory";
 import { GigGame } from "./gigGame";
 import { GigState } from "../types/state";
 import { RenderedHistoryNode } from "../types/front/gigFrontTypes";
+import { Attribute } from "../types/common";
 
 
 export class GigHelpers {

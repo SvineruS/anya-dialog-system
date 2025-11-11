@@ -1,3 +1,4 @@
+import { NodeId, Attribute } from "./common";
 type Evaluable = string;  // can be evaluated in JS context with game state, should return something
 
 

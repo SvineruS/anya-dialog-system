@@ -4,12 +4,13 @@ import testGig from "./testGig";
 import testGig2 from "./testGig2";
 import gig1 from "./gig1_theCityBreathes";
 import gig2 from "./gig2_ashAndFeathers";
+import gig3 from "./gig3_bugInTheWires";
 
 // import { validateGig } from "../../utils/validation";
 
 
 const gigsArray: GigStoryWithMetadata[] = [
-  gig1, gig2,
+  gig1, gig2, gig3,
   testGig,
   testGig2,
 ];

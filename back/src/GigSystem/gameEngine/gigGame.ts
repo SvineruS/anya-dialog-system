@@ -4,6 +4,7 @@ import { GigHelpers, } from "./helpers";
 import { getGigById } from "../gameData/gigs";
 import { GigNode } from "./entities/node";
 import { GigState, HistoryStateItem } from "../types/state";
+import { NodeId } from "../types/common";
 
 
 export class GigGame {

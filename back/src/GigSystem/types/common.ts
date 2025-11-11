@@ -1,2 +1,2 @@
-type Attribute = "strength" | "charisma" | "intelligence" | "marksmanship" | "stealth";
-type NodeId = string;
+export type Attribute = "strength" | "charisma" | "intelligence" | "marksmanship" | "stealth";
+export type NodeId = string;
