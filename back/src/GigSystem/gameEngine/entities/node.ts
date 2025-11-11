@@ -67,7 +67,7 @@ export class GigNode {
   }
 
   canBeSkipped() {
-    return !this.node.text && !this.node.decision;
+    return !this.node.decision;
   }
 
 
