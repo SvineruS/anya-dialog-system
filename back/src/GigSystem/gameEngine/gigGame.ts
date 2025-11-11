@@ -1,9 +1,9 @@
-import { GigStoryGraph, NodeId } from "../types/gigStory";
+import { GigStoryGraph } from "../types/gigStory";
 import { GameResult } from "../types/front/gigFrontTypes";
 import { GigHelpers, } from "./helpers";
 import { getGigById } from "../gameData/gigs";
 import { GigNode } from "./entities/node";
-import { GigState } from "../types/state";
+import { GigState, HistoryStateItem } from "../types/state";
 
 
 export class GigGame {
@@ -39,11 +39,12 @@ export class GigGame {
 
   show(): GameResult {
     const currentNode = this.node(this.state.engine.currentNodeId);
+    const nodeData = currentNode.evaluate();
 
     return {
       history: this.helpers.showHistory(),
       state: this.helpers.getStateCopy(),
-      node: currentNode.show(),
+      node: currentNode.show(nodeData),
     };
 
   }
@@ -58,7 +59,7 @@ export class GigGame {
     const lastHistoryEntry = this.state.gigHistory[this.state.gigHistory.length - 1];
     lastHistoryEntry.decisionIndex = decisionIndex;
     if (result?.rollResult)
-      lastHistoryEntry.dice = result.rollResult;
+      lastHistoryEntry.nodeData = currentNode.evaluate(); // update node data with roll result
 
 
     if (result?.nextNodeId)
@@ -77,7 +78,13 @@ export class GigGame {
     const node = this.node(nodeId);
 
     this.state.engine.currentNodeId = nodeId;
-    this.state.gigHistory.push({nodeId});
+    const newHistoryEntry: HistoryStateItem = {
+      nodeId,
+      nodeData: node.evaluate(),
+      decisionIndex: undefined
+    }
+    this.state.gigHistory.push(newHistoryEntry);
+
     node.doActions();
 
 

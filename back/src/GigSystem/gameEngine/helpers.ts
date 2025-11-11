@@ -1,9 +1,8 @@
 import { safeEval } from "../utils/safeEval";
-import { Action, Action_ModifyState, Attribute, NodeId, Payable } from "../types/gigStory";
+import { Action, Action_ModifyState, Payable } from "../types/gigStory";
 import { GigGame } from "./gigGame";
 import { GigState } from "../types/state";
-import { getGigById } from "../gameData/gigs";
-import { EvaluatedHistory, Node } from "../types/front/gigFrontTypes";
+import { RenderedHistoryNode } from "../types/front/gigFrontTypes";
 
 
 export class GigHelpers {
@@ -88,16 +87,17 @@ export class GigHelpers {
   }
 
 
-  showHistory(): EvaluatedHistory {
+  showHistory(): RenderedHistoryNode[] {
     const history = this.game.state.gigHistory.slice(0, -1)
-    const allNodeIds = new Set(history.map(h => h.nodeId));
-    const nodes: { [id: NodeId]: Node } = {};
-    Object.entries(getGigById(this.game.gigId).story)
-      .forEach(([nodeId, nodeData]) => {
-        if (allNodeIds.has(nodeId) && nodeData.text)
-          nodes[nodeId] = this.game.node(nodeId).show();
+    return history
+      .map(h => {
+        const node = this.game.node(h.nodeId);
+        if (!node.node.text && !node.node.decision) return undefined;
+        return {
+          ...node.show(h.nodeData),
+          decisionIndex: h.decisionIndex,
+        }
       })
-    return { history, nodes }
-
+      .filter(h => h !== undefined)
   }
 }

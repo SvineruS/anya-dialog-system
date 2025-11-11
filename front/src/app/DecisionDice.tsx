@@ -1,9 +1,10 @@
-import { DiceCheck } from "../../../back/src/GigSystem/types/front/gigFrontTypes.ts";
+import { RenderedDiceCheck } from "../../../back/src/GigSystem/types/front/gigFrontTypes.ts";
 
 
 export function DecisionDice({ dice, handleRetry }: {
-  dice: DiceCheck
-  handleRetry: (retry: boolean) => void
+  dice: RenderedDiceCheck,
+  handleRetry: (retry: boolean) => void,
+  isHistory?: boolean
 }) {
   const chance = probabilityXdYGreaterThanTarget(dice.dice[0], dice.dice[1], dice.target - dice.bonus)
   const chanceStr = (chance * 100).toFixed(2);

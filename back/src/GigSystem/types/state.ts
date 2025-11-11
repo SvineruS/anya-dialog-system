@@ -1,3 +1,5 @@
+import { EvaluatedNodeData, RollResult } from "./evaluated";
+
 
 interface GigState {
   character: CharacterState;  // character attributes, money, etc
@@ -6,7 +8,7 @@ interface GigState {
 
   engine: EngineState;  // temp engine-specific state, e.g. current node, retries, etc
   gigState: RandomState;  // temp gig-specific state, e.g. drinksCount in a bar gig
-  gigHistory: HistoryState[]  // history of visited nodes in the current gig
+  gigHistory: HistoryStateItem[]  // history of visited nodes in the current gig
 }
 
 type UserStatePart = Pick<GigState, "character" | "inventory" | "globalState">
@@ -34,7 +36,7 @@ interface EngineState {
   currentNodeId: NodeId; // current node in the gig graph
   pendingRetry?: number; // if set, indicates a pending retry for a dice roll (stores the decisionId)
 
-  [key: `diceLastResult_${string}`]: { rolls: number[]; isSuccess: boolean }
+  [key: `diceLastResult_${string}`]: RollResult
 
   [key: `diceAlreadyWon_${string}`]: boolean
 
@@ -49,13 +51,10 @@ interface RandomState {
   [key: string]: any  // for any random-related state, e.g. "knowAboutSomething": true
 }
 
-export interface HistoryState {
-  nodeId: NodeId;
-  decisionIndex?: number;
-  dice?: {
-    rolls: number[];
-    isSuccess: boolean;
-  }
+export interface HistoryStateItem {
+  nodeId: NodeId;  // visited node id
+  nodeData: EvaluatedNodeData;  // evaluated data at the time of visiting
+  decisionIndex?: number;  // index of the decision made at this node
 }
 
 

@@ -1,11 +1,9 @@
 type Evaluable = string;  // can be evaluated in JS context with game state, should return something
-type Attribute = "strength" | "charisma" | "intelligence" | "marksmanship" | "stealth";
 
 
 
 // GigGraph is a collection of GigNodes identified by NodeId, forming a dialogue tree
 type  GigStoryGraph = { [id: NodeId]: Node };
-type NodeId = string;
 
 // Node presenting dialogue and leading to the next node
 interface Node {
@@ -97,9 +95,7 @@ interface Action_ModifyState {
 
 export {
   Evaluable,
-  Attribute,
   GigStoryGraph,
-  NodeId,
   Node,
   Branch,
   DecisionOption,

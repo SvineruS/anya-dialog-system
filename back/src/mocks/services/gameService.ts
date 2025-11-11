@@ -59,7 +59,7 @@ export class GameService {
     const userMission = this.repository.getUserMission(userId, gigId);
     if (userMission) throw new Error('Mission already started');
 
-    const state: GigState = { ...user, ...emptyMissionState };
+    const state: GigState = { ...user, ...JSON.parse(JSON.stringify(emptyMissionState)) };
 
     // this updates state in place
     const game = GigGame.createNewGame(state, gigId);

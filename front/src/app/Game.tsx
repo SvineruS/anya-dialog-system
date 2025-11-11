@@ -1,6 +1,11 @@
 import { useEffect, useState } from "react";
 import { decide, getGigGame } from "../backends.ts";
-import { GameResult, NodeText } from "../../../back/src/GigSystem/types/front/gigFrontTypes.ts";
+import {
+  GameResult,
+  NodeText,
+  RenderedDecisionOption,
+  RenderedHistoryNode
+} from "../../../back/src/GigSystem/types/front/gigFrontTypes.ts";
 import { DecisionDice } from "./DecisionDice.tsx";
 
 
@@ -24,7 +29,7 @@ export default function Game(props: { gameId: string }) {
   if (!game) return <div>Loading...</div>;
 
   return (
-    <div style={{ display: "flex", height: "100vh" }}>
+    <div style={{ display: "flex" }}>
       <GameView game={game} handleDecision={handleDecision}/>
       <div>
         <h3>State</h3>
@@ -43,52 +48,40 @@ export function GameView({ game, handleDecision }: {
   return (
     <div style={{ flex: 1, padding: "1rem", overflow: "auto" }}>
 
-      <History game={game}/>
-
+      {game.history.map((node, i) =>
+        <Node key={i} node={node} handleDecision={handleDecision} isHistory={true}/>
+      )}
       <hr/>
-      {game.node.text && <DialogLine nodeText={game.node.text}/>}
+      <Node node={game.node} handleDecision={handleDecision}/>
 
-      {/* Decisions */}
-      {game.node.decision && (
-        <div style={{ marginTop: "1rem" }}>
-          {game.node.decision.map((option) => (
-            option ?
-              (
-                <div key={option.decisionId}
-                     style={{ border: "1px solid #444", padding: "0.5rem", marginBottom: "0.5rem" }}>
-                  <button onClick={() => handleDecision(option.decisionId)}>
-                    {option.text}
-                  </button>
 
-                  {option.cost && (
-                    <div style={{ fontSize: "0.8rem" }}>
-                      Cost: {option.cost.amount} {option.cost.type}
-                      {option.cost.type === "item" && ` (Item ID: ${option.cost.itemId})`}
-                    </div>
-                  )}
-
-                  {option.dice &&
-                    <DecisionDice dice={option.dice}
-                                  handleRetry={(retry: boolean) => handleDecision(option.decisionId, retry)}/>
-                  }
-                </div>
-              ) : (
-                <div>
-                  <em>Decision option not available due to unmet conditions.</em>
-                </div>
-              )
-          ))}
-        </div>
-      )}
-
-      {!game.node.decision && (
-        <button onClick={() => handleDecision(undefined)}>
-          Continue...
-        </button>
-      )}
     </div>
 
   );
+}
+
+
+function Node({ node, handleDecision, isHistory }: {
+  node: RenderedHistoryNode
+  handleDecision: (decisionIndex?: number, retry?: boolean) => void,
+  isHistory?: boolean,
+}) {
+  return <div>
+    {node.text && <DialogLine nodeText={node.text}/>}
+
+
+    {/* Decisions */}
+    {node.decision && (
+      <div style={{ marginTop: "1rem" }}>
+        {node.decision.map((option) => (
+          <DecisionOption key={option.decisionId} node={node} option={option}
+                          handleDecision={handleDecision} isHistory={isHistory}/>
+        ))}
+      </div>
+    )}
+
+    <hr/>
+  </div>
 }
 
 
@@ -101,38 +94,37 @@ function DialogLine({ nodeText }: { nodeText: NodeText[] }) {
   ))
 }
 
+function DecisionOption({ node, option, handleDecision, isHistory }: {
+  node: RenderedHistoryNode,
+  option: RenderedDecisionOption,
+  handleDecision: (decisionIndex?: number, retry?: boolean) => void,
+  isHistory?: boolean,
+}) {
+  const isChosen = node.decisionIndex == option.decisionId;
 
-function History({ game }: { game: GameResult }) {
+  return <div style={{ border: "1px solid #444", padding: "0.5rem", marginBottom: "0.5rem", ...(isChosen ? {backgroundColor: "#aaa"} : {}) }}>
 
-  const result = [];
+    <button disabled={isHistory} onClick={() => handleDecision(option.decisionId)}>
+      {option.text}
+    </button>
 
-  for (let i = 0; i < game.history.history.length; i++) {
-    const historyItem = game.history.history[i];
-    const node = game.history.nodes[historyItem.nodeId];
-    if (!node) continue;
-
-    result.push(
-      <div key={i}>
-        {node.text && <DialogLine nodeText={node.text}/>}
-        {node.decision && historyItem.decisionIndex !== undefined &&
-          <div style={{ marginLeft: "1rem", fontStyle: "italic" }}>
-            You chose: {node.decision[historyItem.decisionIndex]?.text || "<unknown option>"}
-          </div>
-        }
-        {
-          historyItem.dice &&
-          <div style={{ marginLeft: "1rem", marginTop: "0.5rem" }}>
-            Dice Roll: {historyItem.dice.rolls.join(", ")} -
-            {historyItem.dice.isSuccess ?
-              <span style={{ color: "green" }}> ✅ Success</span> :
-              <span style={{ color: "red" }}> ❌ Failure</span>}
-          </div>
-        }
-        <hr/>
+    {option.cost && (
+      <div style={{ fontSize: "0.8rem" }}>
+        Cost: {option.cost.amount} {option.cost.type}
+        {option.cost.type === "item" && ` (Item ID: ${option.cost.itemId})`}
       </div>
-    );
-  }
+    )}
 
+    {option.dice &&
+      <DecisionDice dice={option.dice}
+                    handleRetry={(retry: boolean) => handleDecision(option.decisionId, retry)}
+      />
+    }
 
-  return result;
+    {isChosen && (
+      <div style={{ marginLeft: "1rem", fontStyle: "italic" }}>
+        You chose this option.
+      </div>
+    )}
+  </div>;
 }

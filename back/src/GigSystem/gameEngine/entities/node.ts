@@ -1,8 +1,8 @@
-import { Node, NodeId } from "../../types/gigStory";
-import { Node as EvaluatedGigNode } from "../../types/front/gigFrontTypes";
+import { Node } from "../../types/gigStory";
+import { RenderedDecisionOption, RenderedNode } from "../../types/front/gigFrontTypes";
 import { GigGame } from "../gigGame";
 import { GigDecisionOption } from "./decisionOption";
-import { DecisionReturnType } from "../../types/utils";
+import { DecisionReturnType, EvaluatedNodeData } from "../../types/evaluated";
 
 export class GigNode {
   readonly game: GigGame;
@@ -49,14 +49,25 @@ export class GigNode {
     return { nextNodeId };
   }
 
+  evaluate(): EvaluatedNodeData {
+    const decisionsData = this.node.decision
+      ? this.node.decision.map((_, idx) => this.decisionOption(idx).evaluate())
+      : undefined;
 
-  show(): EvaluatedGigNode {
+    return {
+      decisionsData,
+    };
+  }
+
+  show(nodeData: EvaluatedNodeData): RenderedNode {
+    const decisions: RenderedDecisionOption[] | undefined = nodeData.decisionsData
+      ?.map((decisionData, idx) => this.decisionOption(idx).show(decisionData))
+      .filter((decision) => decision != undefined);
+
     return {
       nodeId: this.nodeId,
       text: this.node.text,
-      decision: this.node.decision
-        ?.map((_, idx) => this.decisionOption(idx).show())
-        .filter(i => i !== undefined),
+      decision: decisions,
     };
   }
 

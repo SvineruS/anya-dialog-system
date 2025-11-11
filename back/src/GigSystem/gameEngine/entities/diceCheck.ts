@@ -1,8 +1,8 @@
 import { DiceBonus, DiceCheck } from "../../types/gigStory";
-import { DiceBonus as EvaluatedDiceBonus, DiceCheck as EvaluatedDiceCheck } from "../../types/front/gigFrontTypes";
-import { GigDecisionOption } from "./decisionOption";
 import { EngineState } from "../../types/state";
-import { DecisionReturnType } from "../../types/utils";
+import { EvaluatedDiceData, EvaluatedDiceBonus, DecisionReturnType, RollResult } from "../../types/evaluated";
+import { RenderedDiceCheck as RenderedDiceCheck, } from "../../types/front/gigFrontTypes";
+import { GigDecisionOption } from "./decisionOption";
 
 
 // todo get default values from gig object by gig tier
@@ -55,7 +55,7 @@ export class GigDiceCheck {
 
     const [numDice, diceSides] = this.diceCheck.dice;
     const { rolls, total: rollValue } = rollNDices(numDice, diceSides);
-    const { totalBonus } = this.getBonuses();
+    const totalBonus = getTotalBonus(this.getBonuses());
 
     const isSuccess = (rollValue + totalBonus) >= this.diceCheck.target;
     const rollResult = { rolls, isSuccess };
@@ -89,23 +89,36 @@ export class GigDiceCheck {
   }
 
 
-  show(): EvaluatedDiceCheck {
-    const { bonuses, totalBonus } = this.getBonuses();
+  evaluate(): EvaluatedDiceData {
+    return {
+      lastResult: this.getLastRollResult(),
+      isAlreadyWon: this.getDiceAlreadyWon(),
+      bonuses: this.getBonuses(),
+      retries: {
+        retriesDone: this.getRetriesDone(),
+        pendingRetry: this.isThisDicePendingRetry(),
+      },
+    }
+  }
+
+
+  show(diceData: EvaluatedDiceData): RenderedDiceCheck {
     return {
       dice: this.diceCheck.dice,
       target: this.diceCheck.target,
-      lastResult: this.getLastRollResult(),
-      isAlreadyWon: this.getDiceAlreadyWon(),
-      bonuses,
-      bonus: totalBonus,
+      lastResult: diceData.lastResult,
+      isAlreadyWon: diceData.isAlreadyWon,
+      bonuses: diceData.bonuses,
+      bonus: getTotalBonus(diceData.bonuses),
       retries: {
         maxRetries: this.diceCheck.retries ?? MAX_RETRIES,
-        retriesDone: this.getRetriesDone(),
+        retriesDone: diceData.retries.retriesDone,
         retryCost: RETRY_COST,
-        pendingRetry: this.isThisDicePendingRetry(),
+        pendingRetry: diceData.retries.pendingRetry,
       },
-    } as EvaluatedDiceCheck;
+    };
   }
+
 
 
   private canRetry() {
@@ -114,13 +127,10 @@ export class GigDiceCheck {
   }
 
 
-  private getBonuses() {
-    const bonuses: EvaluatedDiceBonus[] = this.diceCheck.bonuses
+  private getBonuses(): EvaluatedDiceBonus[] {
+    return this.diceCheck.bonuses
       ?.map((b) => this.evaluateOneDiceBonus(b))
       .filter(i => i !== undefined) ?? [];
-
-    const totalBonus = bonuses.reduce((sum, b) => sum + b!.amount, 0);
-    return { bonuses, totalBonus };
   }
 
 
@@ -146,15 +156,13 @@ export class GigDiceCheck {
   setDiceAlreadyWon = () => this.engineState()[`diceAlreadyWon_${this.diceId}`] = true;
 
   getLastRollResult = () => this.engineState()[`diceLastResult_${this.diceId}`];
-  setLastRollResult = (result: { rolls: number[]; isSuccess: boolean }) => this.engineState()[`diceLastResult_${this.diceId}`] = result;
-
+  setLastRollResult = (result: RollResult) => this.engineState()[`diceLastResult_${this.diceId}`] = result;
 
 
   game = () => this.decision.node.game;
   engineState = (): EngineState => this.game().state.engine
 
 }
-
 
 
 function rollNDices(numDice: number, diceSides: number) {
@@ -167,3 +175,9 @@ function rollNDices(numDice: number, diceSides: number) {
   }
   return { rolls, total };
 }
+
+
+function getTotalBonus(bonuses: EvaluatedDiceBonus[]) {
+  return bonuses.reduce((sum, b) => sum + b!.amount, 0);
+}
+

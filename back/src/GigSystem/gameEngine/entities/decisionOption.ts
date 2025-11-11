@@ -1,7 +1,8 @@
 import { DecisionOption } from "../../types/gigStory";
-import { DecisionOption as EvaluatedDecisionOption } from "../../types/front/gigFrontTypes";
+import { RenderedDecisionOption } from "../../types/front/gigFrontTypes";
 import { GigNode } from "./node";
 import { GigDiceCheck } from "./diceCheck";
+import { EvaluatedDecisionData } from "../../types/evaluated";
 
 
 export class GigDecisionOption {
@@ -41,22 +42,35 @@ export class GigDecisionOption {
     }
   }
 
-  show(): EvaluatedDecisionOption | undefined {
-    if (!this.checkCondition())
+  evaluate(): EvaluatedDecisionData {
+    return {
+      conditionMet: this.checkCondition(),
+      diceData: this.decisionOption.dice ? this.diceCheck().evaluate() : undefined
+    };
+  }
+
+
+  show(decisionData: EvaluatedDecisionData): RenderedDecisionOption | undefined {
+    if (!decisionData.conditionMet)
       return undefined;
+
+    const dice = this.decisionOption.dice ?
+      this.diceCheck().show(decisionData.diceData!) : undefined;
 
     return {
       decisionId: this.decisionId,
       text: this.decisionOption.text,
       cost: this.decisionOption.cost,
-      dice: this.decisionOption.dice ? this.diceCheck().show() : undefined,
+      dice,
     };
   }
 
-  checkCondition() {
+
+  private checkCondition() {
     return this.game().helpers.checkCondition(this.decisionOption.condition);
   }
 
   game = () => this.node.game;
   diceCheck = () => new GigDiceCheck(this);
 }
+

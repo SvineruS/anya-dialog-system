@@ -1,8 +1,6 @@
-import {NodeId} from "../gigStory";
-import { GigState, HistoryState, Status } from "../state";
+import { GigState, Status } from "../state";
 import { GigMetadata } from "../gig";
-
-type Attribute = "strength" | "charisma" | "intelligence" | "marksmanship" | "stealth";
+import { EvaluatedDiceBonus, RollResult } from "../evaluated";
 
 
 interface MissionToSelect extends GigMetadata {
@@ -10,35 +8,32 @@ interface MissionToSelect extends GigMetadata {
 }
 
 interface GameResult {
-  history: EvaluatedHistory;
-  node: Node;
+  history: RenderedHistoryNode[];
+  node: RenderedNode;
   state: GigState;
 }
 
-interface EvaluatedHistory {
-  history: HistoryState[];
-  nodes: { [id: NodeId]: Node};
-}
-
-
-interface Node {
+interface RenderedNode {
   nodeId: NodeId;
-
   text?: NodeText[];
-
-  decision?: DecisionOption[];
+  decision?: RenderedDecisionOption[];
 }
+
+interface RenderedHistoryNode extends RenderedNode {
+  decisionIndex?: number; // index of the decision made at this node
+}
+
 
 interface NodeText {
   from: string;
   text: string | string[];  // can be multiple lines, support markdown
 }
 
-interface DecisionOption {
+interface RenderedDecisionOption {
   decisionId: number;
   text: string;
   cost?: Payable;
-  dice?: DiceCheck;
+  dice?: RenderedDiceCheck;
 }
 
 
@@ -49,14 +44,14 @@ interface Payable {
 }
 
 
-interface DiceCheck {
+interface RenderedDiceCheck {
   dice: [number, number];
   target: number;
 
-  lastResult?: { rolls: number[]; isSuccess: boolean }
+  lastResult?: RollResult
   isAlreadyWon: boolean;
 
-  bonuses: DiceBonus[];
+  bonuses: EvaluatedDiceBonus[];
   bonus: number;
 
   retries: {
@@ -69,34 +64,16 @@ interface DiceCheck {
 }
 
 
-type DiceBonus = DiceBonus_FromCharAttribute | DiceBonus_ConditionalBonus;
-
-
-interface DiceBonus_FromCharAttribute {
-  type: "characterAttribute";
-  attribute: Attribute;
-  amount: number;
-}
-
-interface DiceBonus_ConditionalBonus {
-  amount: number;
-  text: string;
-}
-
-
 export {
   MissionToSelect,
   GameResult,
-  EvaluatedHistory,
-  Attribute,
-  Node,
+  RenderedNode,
+  RenderedHistoryNode,
   NodeText,
-  DecisionOption,
+  RenderedDecisionOption,
   Payable,
-  DiceCheck,
-  DiceBonus,
-  DiceBonus_FromCharAttribute,
-  DiceBonus_ConditionalBonus,
+  RenderedDiceCheck,
+  EvaluatedDiceBonus,
 }
 
 
