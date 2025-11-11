@@ -95,6 +95,7 @@ interface Action_ModifyState {
 }
 
 export {
+  NodeId,
   Evaluable,
   GigStoryGraph,
   Node,
